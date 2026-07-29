@@ -15,18 +15,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth";
-import { LOCALES, useTranslation, type Locale } from "@/lib/i18n/i18n";
-import { Brand, ROLE_LABELS, initialsFromEmail } from "./sidebar";
+import { LOCALES, useTranslation, type Locale, type TranslationKey } from "@/lib/i18n/i18n";
+import { Brand, initialsFromEmail } from "./sidebar";
 import { SidebarNav } from "./sidebar-nav";
 import { ThemeToggle } from "./theme-toggle";
 
-// No `language.*` translation keys exist in the dictionaries, so locale names are a small local
-// lookup rather than routed through t() — same rationale as ROLE_LABELS in sidebar.tsx.
-const LOCALE_LABELS: Record<Locale, string> = { en: "English", es: "Español", ar: "العربية" };
 const LOCALE_CODE: Record<Locale, string> = { en: "EN", es: "ES", ar: "AR" };
 
 function LanguageSwitcher() {
-  const { locale, setLocale } = useTranslation();
+  const { locale, setLocale, t } = useTranslation();
 
   return (
     <DropdownMenu>
@@ -41,7 +38,9 @@ function LanguageSwitcher() {
             const active = locale === code;
             return (
               <DropdownMenuItem key={code} onClick={() => setLocale(code)} className="justify-between gap-3">
-                <span className={active ? "font-semibold" : "font-normal"}>{LOCALE_LABELS[code]}</span>
+                <span className={active ? "font-semibold" : "font-normal"}>
+                  {t(`language.${code}` as TranslationKey)}
+                </span>
                 {active ? <CheckIcon className="size-4 shrink-0 text-primary" /> : null}
               </DropdownMenuItem>
             );
@@ -92,14 +91,14 @@ export function Topbar() {
             </span>
             <span className="hidden flex-col items-start leading-tight sm:flex">
               <span className="text-sm font-medium">{user.email}</span>
-              <span className="text-[11px] text-muted-foreground">{ROLE_LABELS[user.role]}</span>
+              <span className="text-[11px] text-muted-foreground">{t(`roles.${user.role}` as TranslationKey)}</span>
             </span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-60">
             <DropdownMenuGroup>
               <DropdownMenuLabel className="flex flex-col gap-0.5">
                 <span className="text-sm font-medium text-foreground">{user.email}</span>
-                <span className="text-xs font-normal text-muted-foreground">{ROLE_LABELS[user.role]}</span>
+                <span className="text-xs font-normal text-muted-foreground">{t(`roles.${user.role}` as TranslationKey)}</span>
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

@@ -3,21 +3,11 @@
 import Link from "next/link";
 import { LogOutIcon, ShieldCheckIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import type { SessionUser } from "@/lib/auth-store";
-import { useTranslation } from "@/lib/i18n/i18n";
+import { useTranslation, type TranslationKey } from "@/lib/i18n/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarNav } from "./sidebar-nav";
-
-// No `roles.*` entries exist in the translation dictionaries (only nav/common/auth/profile), so
-// role display labels are a small local lookup rather than routed through t().
-export const ROLE_LABELS: Record<SessionUser["role"], string> = {
-  PLATFORM_ADMIN: "Platform Admin",
-  CLIENT_ADMIN: "Client Admin",
-  SITE_MANAGER: "Site Manager",
-  VIEWER: "Viewer",
-};
 
 export function initialsFromEmail(email: string): string {
   const local = email.split("@")[0] ?? "";
@@ -65,7 +55,7 @@ export function Sidebar() {
               <div className="flex min-w-0 flex-col gap-0.5 leading-tight">
                 <span className="truncate text-sm font-medium">{user.email}</span>
                 <Badge variant="outline" className="w-fit">
-                  {ROLE_LABELS[user.role]}
+                  {t(`roles.${user.role}` as TranslationKey)}
                 </Badge>
               </div>
             </div>
