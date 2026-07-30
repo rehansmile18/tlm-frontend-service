@@ -45,8 +45,11 @@ export interface UserRecord {
   email: string;
   role: string;
   clientId: string | null;
-  siteIds: string[];
-  permissions: string[];
+  // Optional, not just string[]: a user document created before these fields existed in TLM's
+  // schema can omit them entirely (Mongoose's default only applies to newly-created documents),
+  // so every consumer must handle undefined here rather than assuming an array.
+  siteIds?: string[];
+  permissions?: string[];
   status: string;
   createdAt: string;
   updatedAt: string;

@@ -125,7 +125,7 @@ export default function TeamPage() {
                     <TableCell className="font-medium">{item.email}</TableCell>
                     <TableCell className="text-muted-foreground">{t(`roles.${item.role}` as TranslationKey)}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {item.siteIds.length > 0 ? item.siteIds.length : "—"}
+                      {item.siteIds?.length ? item.siteIds.length : "—"}
                     </TableCell>
                     <TableCell>
                       <StatusBadge tone={item.status === "active" ? "success" : "muted"}>
