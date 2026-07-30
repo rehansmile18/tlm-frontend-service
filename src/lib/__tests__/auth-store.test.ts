@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { clearSession, getToken, getUser, setSession, subscribeSession } from "../auth-store";
+import { clearSession, getToken, getUser, getUserSnapshot, setSession, subscribeSession } from "../auth-store";
 
 const user = {
   userId: "u1",
@@ -47,5 +47,23 @@ describe("auth-store", () => {
   it("returns null for a corrupted user record instead of throwing", () => {
     localStorage.setItem("tlmSiteOps.user", "{not json");
     expect(getUser()).toBeNull();
+  });
+
+  // Regression test: getUserSnapshot() is the getSnapshot passed to useSyncExternalStore, which
+  // requires a referentially stable return value between calls when the underlying data hasn't
+  // changed. getUser() re-parses JSON on every call (a fresh object each time), which is fine for
+  // a one-off read but causes an infinite render loop when used as a snapshot getter directly —
+  // this bug shipped and broke the app immediately after login until it was caught by browser
+  // testing, since no unit test covered snapshot stability.
+  it("returns a stable snapshot reference until the value changes", () => {
+    setSession("t", user);
+    const first = getUserSnapshot();
+    const second = getUserSnapshot();
+    expect(first).toBe(second);
+
+    setSession("t", { ...user, permissions: ["employee:read", "site:read"] });
+    const third = getUserSnapshot();
+    expect(third).not.toBe(second);
+    expect(third).toEqual({ ...user, permissions: ["employee:read", "site:read"] });
   });
 });

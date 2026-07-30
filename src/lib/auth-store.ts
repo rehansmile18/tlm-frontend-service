@@ -48,6 +48,23 @@ export function getUser(): SessionUser | null {
   return safeParse(window.localStorage.getItem(USER_KEY));
 }
 
+// Cached snapshot for useSyncExternalStore: it requires a stable reference between calls when the
+// underlying value hasn't changed (React compares via Object.is and re-renders forever otherwise —
+// getUser() above re-parses JSON on every call, which is fine for a one-off read but not this), so
+// this only re-parses when the raw stored string actually differs.
+let cachedRaw: string | null = null;
+let cachedUser: SessionUser | null = null;
+
+export function getUserSnapshot(): SessionUser | null {
+  if (typeof window === "undefined") return null;
+  const raw = window.localStorage.getItem(USER_KEY);
+  if (raw !== cachedRaw) {
+    cachedRaw = raw;
+    cachedUser = safeParse(raw);
+  }
+  return cachedUser;
+}
+
 export function setSession(token: string, user: SessionUser): void {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(TOKEN_KEY, token);

@@ -13,7 +13,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { authApi } from "./resources";
-import { clearSession, getUser, setSession, subscribeSession, type SessionUser } from "./auth-store";
+import { clearSession, getUserSnapshot, setSession, subscribeSession, type SessionUser } from "./auth-store";
 
 interface AuthContextValue {
   user: SessionUser | null;
@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Session lives in localStorage; subscribe to it as an external store so reads are consistent
   // across tabs and hydration-safe. auth-store doesn't export a separate server-snapshot getter
   // (it's a client-only module), so the server snapshot is inlined here as a constant `null`.
-  const user = useSyncExternalStore(subscribeSession, getUser, () => null);
+  const user = useSyncExternalStore(subscribeSession, getUserSnapshot, () => null);
 
   // Gate route guards until after mount so an authenticated user isn't bounced to /login during
   // the initial (server-snapshot) render, before localStorage has been read.
