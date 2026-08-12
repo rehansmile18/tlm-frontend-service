@@ -36,6 +36,16 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
  */
 const MODULE_KEY_PREFIXES: { prefix: string; moduleKey: string }[] = [
   { prefix: "employees.sites.", moduleKey: "sites" },
+  // Dashboard's own stat tiles/quick-actions mention OTHER modules by name — checked before the
+  // general "dashboard." fallback below so they resolve to the module they're actually about.
+  { prefix: "dashboard.employees", moduleKey: "employees" },
+  { prefix: "dashboard.activeEmployees", moduleKey: "employees" },
+  { prefix: "dashboard.sites", moduleKey: "sites" },
+  { prefix: "dashboard.openPunches", moduleKey: "punches" },
+  { prefix: "dashboard.viewPunches", moduleKey: "punches" },
+  { prefix: "dashboard.pendingTimesheets", moduleKey: "timesheets" },
+  { prefix: "dashboard.viewTimesheets", moduleKey: "timesheets" },
+  { prefix: "dashboard.viewSchedule", moduleKey: "schedule" },
   { prefix: "nav.dashboard", moduleKey: "dashboard" },
   { prefix: "dashboard.", moduleKey: "dashboard" },
   { prefix: "nav.employees", moduleKey: "employees" },
