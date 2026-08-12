@@ -18,9 +18,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { humanizeError } from "@/components/data-state";
+import { useEditableClientId } from "@/components/client-picker-field";
 import { tasksApi, type CreateTaskBody, type Task, type UpdateTaskBody } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
-import { useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
 
 // `code` is kept as a plain (always-string) RHF field for a simple controlled <Input/> — an
@@ -36,13 +36,8 @@ type TaskFormValues = z.infer<typeof taskFormSchema>;
 function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) {
   const isEdit = Boolean(task);
   const { t } = useTranslation();
-  const { user } = useAuth();
   const queryClient = useQueryClient();
-
-  // CLIENT_ADMIN/SITE_MANAGER sessions always carry their own clientId. A PLATFORM_ADMIN's
-  // session has none (they operate across clients), which this simple resolution doesn't cover.
-  // TODO: PLATFORM_ADMIN needs an explicit client picker to create/edit tasks for a chosen client.
-  const clientId = task?.clientId ?? user?.clientId ?? "";
+  const { clientId, picker: clientPicker } = useEditableClientId(task?.clientId);
 
   const {
     control,
@@ -91,6 +86,8 @@ function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {clientPicker}
+
       <div className="space-y-1.5">
         <Label htmlFor="name">{t("tasks.name")}</Label>
         <Controller

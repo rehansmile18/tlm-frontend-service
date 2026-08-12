@@ -22,9 +22,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Combobox, ComboboxItem } from "@/components/ui/combobox";
 import { humanizeError } from "@/components/data-state";
+import { useEditableClientId } from "@/components/client-picker-field";
 import { employeesApi, sitesApi, schedulesApi, type ScheduledShift } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
-import { useAuth, useRole } from "@/lib/auth";
+import { useRole } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
 
 const shiftFormSchema = z
@@ -84,14 +85,9 @@ function ShiftForm({
 }) {
   const isEdit = Boolean(shift);
   const { t } = useTranslation();
-  const { user } = useAuth();
   const { isSiteManager, siteIds } = useRole();
   const queryClient = useQueryClient();
-
-  // CLIENT_ADMIN/SITE_MANAGER sessions always carry their own clientId. A PLATFORM_ADMIN's
-  // session has none (they operate across clients), which this simple resolution doesn't cover.
-  // TODO: PLATFORM_ADMIN needs an explicit client picker to create/edit shifts for a chosen client.
-  const clientId = shift?.clientId ?? user?.clientId ?? "";
+  const { clientId, picker: clientPicker } = useEditableClientId(shift?.clientId);
 
   const {
     control,
@@ -210,6 +206,8 @@ function ShiftForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {clientPicker}
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="employeeId">{t("schedule.employee")}</Label>

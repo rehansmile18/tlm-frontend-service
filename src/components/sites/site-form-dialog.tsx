@@ -18,9 +18,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { humanizeError } from "@/components/data-state";
+import { useEditableClientId } from "@/components/client-picker-field";
 import { sitesApi, type CreateSiteBody, type Site, type UpdateSiteBody } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
-import { useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
 
 const siteFormSchema = z.object({
@@ -34,13 +34,9 @@ type SiteFormValues = z.infer<typeof siteFormSchema>;
 function SiteForm({ site, onDone }: { site?: Site; onDone: () => void }) {
   const isEdit = Boolean(site);
   const { t } = useTranslation();
-  const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // CLIENT_ADMIN/SITE_MANAGER sessions always carry their own clientId. A PLATFORM_ADMIN's
-  // session has none (they operate across clients), which this simple resolution doesn't cover.
-  // TODO: PLATFORM_ADMIN needs an explicit client picker to create/edit sites for a chosen client.
-  const clientId = site?.clientId ?? user?.clientId ?? "";
+  const { clientId, picker: clientPicker } = useEditableClientId(site?.clientId);
 
   const {
     control,
@@ -89,6 +85,8 @@ function SiteForm({ site, onDone }: { site?: Site; onDone: () => void }) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {clientPicker}
+
       <div className="space-y-1.5">
         <Label htmlFor="siteId">{t("sites.siteId")}</Label>
         <Controller

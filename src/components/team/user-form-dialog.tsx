@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Combobox, ComboboxItem } from "@/components/ui/combobox";
 import { humanizeError } from "@/components/data-state";
+import { useEditableClientId } from "@/components/client-picker-field";
 import {
   permissionsApi,
   sitesApi,
@@ -28,7 +29,6 @@ import {
   type UserRecord,
 } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
-import { useAuth } from "@/lib/auth";
 import { useTranslation, type TranslationKey } from "@/lib/i18n/i18n";
 
 const ROLE_VALUES = ["PLATFORM_ADMIN", "CLIENT_ADMIN", "SITE_MANAGER", "VIEWER"] as const;
@@ -70,14 +70,8 @@ type UserFormValues = z.infer<ReturnType<typeof buildUserFormSchema>>;
 function UserForm({ targetUser, onDone }: { targetUser?: UserRecord; onDone: () => void }) {
   const isEdit = Boolean(targetUser);
   const { t } = useTranslation();
-  const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
-
-  // CLIENT_ADMIN sessions always carry their own clientId, and an edited target user always
-  // carries its own (real) clientId. A PLATFORM_ADMIN creating a brand-new user has no clientId
-  // of their own (they operate across clients), which this simple resolution doesn't cover.
-  // TODO: PLATFORM_ADMIN needs an explicit client picker to create users for a chosen client.
-  const clientId = targetUser?.clientId ?? currentUser?.clientId ?? "";
+  const { clientId, picker: clientPicker } = useEditableClientId(targetUser?.clientId);
 
   const {
     control,
@@ -174,6 +168,8 @@ function UserForm({ targetUser, onDone }: { targetUser?: UserRecord; onDone: () 
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {clientPicker}
+
       <div className="space-y-1.5">
         <Label htmlFor="email">{t("auth.email")}</Label>
         <Controller

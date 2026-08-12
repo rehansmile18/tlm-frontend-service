@@ -21,9 +21,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Combobox, ComboboxItem } from "@/components/ui/combobox";
 import { humanizeError } from "@/components/data-state";
+import { useEditableClientId } from "@/components/client-picker-field";
 import { employeesApi, sitesApi, schedulesApi, type CreateScheduleBody } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
-import { useAuth, useRole } from "@/lib/auth";
+import { useRole } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
 
 const shiftRowSchema = z
@@ -97,14 +98,9 @@ function BulkCreateForm({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
-  const { user } = useAuth();
   const { isSiteManager, siteIds } = useRole();
   const queryClient = useQueryClient();
-
-  // CLIENT_ADMIN/SITE_MANAGER sessions always carry their own clientId. A PLATFORM_ADMIN's
-  // session has none (they operate across clients).
-  // TODO: PLATFORM_ADMIN needs an explicit client picker to bulk-create shifts for a chosen client.
-  const clientId = user?.clientId ?? "";
+  const { clientId, picker: clientPicker } = useEditableClientId();
 
   // Rows that were rejected by the last submission, keyed by their position in the CURRENT field
   // array (accepted rows get pruned after a partial success, so positions stay aligned — see
@@ -227,6 +223,8 @@ function BulkCreateForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {clientPicker}
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="bulk-employeeId">{t("schedule.employee")}</Label>

@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Combobox, ComboboxItem } from "@/components/ui/combobox";
 import { humanizeError } from "@/components/data-state";
+import { useEditableClientId } from "@/components/client-picker-field";
 import {
   payPeriodConfigsApi,
   payrollCalendarsApi,
@@ -27,7 +28,6 @@ import {
   type UpdatePayPeriodConfigBody,
 } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
-import { useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
 
 // Mirrors tlm-backend's CADENCES / PAY_DATE_WEEKEND_RULES (src/types/domain.ts) — kept as local
@@ -83,13 +83,8 @@ type PayPeriodConfigFormValues = z.infer<typeof payPeriodConfigFormSchema>;
 function PayPeriodConfigForm({ config, onDone }: { config?: PayPeriodConfig; onDone: () => void }) {
   const isEdit = Boolean(config);
   const { t } = useTranslation();
-  const { user } = useAuth();
   const queryClient = useQueryClient();
-
-  // CLIENT_ADMIN/SITE_MANAGER sessions always carry their own clientId. A PLATFORM_ADMIN's
-  // session has none (they operate across clients), which this simple resolution doesn't cover.
-  // TODO: PLATFORM_ADMIN needs an explicit client picker to create/edit pay period configs for a chosen client.
-  const clientId = config?.clientId ?? user?.clientId ?? "";
+  const { clientId, picker: clientPicker } = useEditableClientId(config?.clientId);
 
   const {
     control,
@@ -184,6 +179,8 @@ function PayPeriodConfigForm({ config, onDone }: { config?: PayPeriodConfig; onD
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {clientPicker}
+
       <div className="max-h-[65vh] space-y-4 overflow-y-auto pe-1">
         <div className="space-y-1.5">
           <Label htmlFor="name">{t("payPeriodConfigs.name")}</Label>
