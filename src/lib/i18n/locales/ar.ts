@@ -57,6 +57,8 @@ const ar: TranslationKeys = {
     timesheets: "كشوف الدوام",
     team: "الفريق والصلاحيات",
     profile: "الملف الشخصي",
+    collapseSidebar: "طي الشريط الجانبي",
+    expandSidebar: "توسيع الشريط الجانبي",
   },
   roles: {
     PLATFORM_ADMIN: "مسؤول المنصة",

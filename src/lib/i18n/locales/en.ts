@@ -57,6 +57,8 @@ const en = {
     timesheets: "Timesheets",
     team: "Team & Permissions",
     profile: "Profile",
+    collapseSidebar: "Collapse sidebar",
+    expandSidebar: "Expand sidebar",
   },
   roles: {
     PLATFORM_ADMIN: "Platform Admin",

@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { hasPermission, useAuth } from "@/lib/auth";
 import type { SessionUser } from "@/lib/auth-store";
 import { useTranslation, type TranslationKey } from "@/lib/i18n/i18n";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 type Role = SessionUser["role"];
 
@@ -70,7 +71,13 @@ export function isNavItemVisible(item: NavItem, user: SessionUser | null): boole
 }
 
 /** Shared nav list rendered inside both the desktop Sidebar and the mobile Sheet drawer. */
-export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+export function SidebarNav({
+  onNavigate,
+  collapsed = false,
+}: {
+  onNavigate?: () => void;
+  collapsed?: boolean;
+}) {
   const pathname = usePathname();
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -81,21 +88,29 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       {items.map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
         const Icon = item.icon;
-        return (
+        const label = t(item.labelKey);
+        const link = (
           <Link
-            key={item.href}
             href={item.href}
             onClick={onNavigate}
             className={cn(
               "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+              collapsed && "justify-center px-0",
               active
                 ? "bg-primary/10 font-medium text-primary"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
             <Icon className="size-4 shrink-0" />
-            {t(item.labelKey)}
+            {!collapsed ? label : null}
           </Link>
+        );
+        if (!collapsed) return <div key={item.href}>{link}</div>;
+        return (
+          <Tooltip key={item.href}>
+            <TooltipTrigger render={link} />
+            <TooltipContent side="inline-end">{label}</TooltipContent>
+          </Tooltip>
         );
       })}
     </nav>

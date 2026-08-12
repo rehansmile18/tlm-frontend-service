@@ -57,6 +57,8 @@ const es: TranslationKeys = {
     timesheets: "Hojas de tiempo",
     team: "Equipo y permisos",
     profile: "Perfil",
+    collapseSidebar: "Contraer barra lateral",
+    expandSidebar: "Expandir barra lateral",
   },
   roles: {
     PLATFORM_ADMIN: "Administrador de la plataforma",
