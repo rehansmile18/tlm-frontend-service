@@ -59,6 +59,9 @@ const en = {
     profile: "Profile",
     collapseSidebar: "Collapse sidebar",
     expandSidebar: "Expand sidebar",
+    appSwitcher: "Switch app",
+    ruleRepositoryApp: "Rule Repository",
+    siteOperationsApp: "Site Operations",
   },
   roles: {
     PLATFORM_ADMIN: "Platform Admin",

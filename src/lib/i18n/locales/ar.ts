@@ -59,6 +59,9 @@ const ar: TranslationKeys = {
     profile: "الملف الشخصي",
     collapseSidebar: "طي الشريط الجانبي",
     expandSidebar: "توسيع الشريط الجانبي",
+    appSwitcher: "تبديل التطبيق",
+    ruleRepositoryApp: "مستودع القواعد",
+    siteOperationsApp: "عمليات الموقع",
   },
   roles: {
     PLATFORM_ADMIN: "مسؤول المنصة",

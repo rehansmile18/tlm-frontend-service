@@ -59,6 +59,9 @@ const es: TranslationKeys = {
     profile: "Perfil",
     collapseSidebar: "Contraer barra lateral",
     expandSidebar: "Expandir barra lateral",
+    appSwitcher: "Cambiar de aplicación",
+    ruleRepositoryApp: "Repositorio de Reglas",
+    siteOperationsApp: "Operaciones de Sitio",
   },
   roles: {
     PLATFORM_ADMIN: "Administrador de la plataforma",

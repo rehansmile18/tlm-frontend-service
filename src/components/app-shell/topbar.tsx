@@ -19,6 +19,7 @@ import { LOCALES, useTranslation, type Locale, type TranslationKey } from "@/lib
 import { Brand, initialsFromEmail } from "./sidebar";
 import { SidebarNav } from "./sidebar-nav";
 import { ThemeToggle } from "./theme-toggle";
+import { AppSwitcher } from "./app-switcher";
 
 const LOCALE_CODE: Record<Locale, string> = { en: "EN", es: "ES", ar: "AR" };
 
@@ -80,6 +81,7 @@ export function Topbar() {
 
       <div className="flex-1" />
 
+      <AppSwitcher />
       <LanguageSwitcher />
       <ThemeToggle />
 
