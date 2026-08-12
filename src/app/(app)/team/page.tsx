@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
@@ -11,8 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/status-badge";
 import { EmptyState, ErrorState } from "@/components/data-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { UserFormDialog } from "@/components/team/user-form-dialog";
-import { usersApi, type UserListParams, type UserRecord } from "@/lib/resources";
+import { usersApi, type UserListParams } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { useAuth } from "@/lib/auth";
 import { useTranslation, type TranslationKey } from "@/lib/i18n/i18n";
@@ -21,11 +22,10 @@ import { formatDate } from "@/lib/format";
 const PAGE_SIZE = 25;
 
 export default function TeamPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const { t } = useTranslation();
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<UserRecord | undefined>(undefined);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
@@ -52,23 +52,13 @@ export default function TeamPage() {
     return items.filter((item) => item.email.toLowerCase().includes(term));
   }, [query.data, search]);
 
-  function openCreate() {
-    setEditingUser(undefined);
-    setDialogOpen(true);
-  }
-
-  function openEdit(target: UserRecord) {
-    setEditingUser(target);
-    setDialogOpen(true);
-  }
-
   return (
     <>
       <PageHeader
         title={t("team.title")}
         description={t("team.description")}
         actions={
-          <Button onClick={openCreate}>
+          <Button nativeButton={false} render={<Link href="/team/new" />}>
             <PlusIcon className="size-4" />
             {t("team.newUser")}
           </Button>
@@ -99,7 +89,7 @@ export default function TeamPage() {
           description={!search ? t("team.noneFoundHint") : undefined}
           action={
             !search ? (
-              <Button onClick={openCreate}>
+              <Button nativeButton={false} render={<Link href="/team/new" />}>
                 <PlusIcon className="size-4" />
                 {t("team.newUser")}
               </Button>
@@ -121,7 +111,11 @@ export default function TeamPage() {
               </TableHeader>
               <TableBody>
                 {filteredItems.map((item) => (
-                  <TableRow key={item._id} className="cursor-pointer" onClick={() => openEdit(item)}>
+                  <TableRow
+                    key={item._id}
+                    className="cursor-pointer"
+                    onClick={() => router.push(`/team/${item._id}/edit`)}
+                  >
                     <TableCell className="font-medium">{item.email}</TableCell>
                     <TableCell className="text-muted-foreground">{t(`roles.${item.role}` as TranslationKey)}</TableCell>
                     <TableCell className="text-muted-foreground">
@@ -154,8 +148,6 @@ export default function TeamPage() {
           </div>
         </div>
       ) : null}
-
-      <UserFormDialog open={dialogOpen} onOpenChange={setDialogOpen} user={editingUser} />
     </>
   );
 }

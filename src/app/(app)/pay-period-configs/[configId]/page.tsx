@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -10,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/data-state";
-import { PayPeriodConfigFormDialog } from "@/components/pay-configs/pay-period-config-form-dialog";
 import { payPeriodConfigsApi, payrollCalendarsApi } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
@@ -28,7 +26,6 @@ export default function PayPeriodConfigDetailPage() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const canWrite = hasPermission(user, "payPeriodConfig:write");
-  const [editOpen, setEditOpen] = useState(false);
 
   const query = useQuery({
     queryKey: queryKeys.payPeriodConfig(configId),
@@ -67,7 +64,11 @@ export default function PayPeriodConfigDetailPage() {
             title={config.name}
             actions={
               canWrite ? (
-                <Button variant="outline" onClick={() => setEditOpen(true)}>
+                <Button
+                  variant="outline"
+                  nativeButton={false}
+                  render={<Link href={`/pay-period-configs/${configId}/edit`} />}
+                >
                   {t("common.edit")}
                 </Button>
               ) : null
@@ -151,8 +152,6 @@ export default function PayPeriodConfigDetailPage() {
               </dl>
             </CardContent>
           </Card>
-
-          <PayPeriodConfigFormDialog open={editOpen} onOpenChange={setEditOpen} config={config} />
         </>
       )}
     </>

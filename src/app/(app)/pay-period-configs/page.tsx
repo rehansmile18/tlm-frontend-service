@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
@@ -10,7 +11,6 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/data-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PayPeriodConfigFormDialog } from "@/components/pay-configs/pay-period-config-form-dialog";
 import { payPeriodConfigsApi, type PayPeriodConfigListParams } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
@@ -25,7 +25,6 @@ export default function PayPeriodConfigsPage() {
   const { t } = useTranslation();
   const canWrite = hasPermission(user, "payPeriodConfig:write");
 
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [page, setPage] = useState(1);
 
   // TODO: PLATFORM_ADMIN has no clientId of their own — this scopes the list to "no client"
@@ -48,7 +47,7 @@ export default function PayPeriodConfigsPage() {
         description={t("payPeriodConfigs.description")}
         actions={
           canWrite ? (
-            <Button onClick={() => setDialogOpen(true)}>
+            <Button nativeButton={false} render={<Link href="/pay-period-configs/new" />}>
               <PlusIcon className="size-4" />
               {t("payPeriodConfigs.newConfig")}
             </Button>
@@ -70,7 +69,7 @@ export default function PayPeriodConfigsPage() {
           description={canWrite ? t("payPeriodConfigs.noneFoundHint") : undefined}
           action={
             canWrite ? (
-              <Button onClick={() => setDialogOpen(true)}>
+              <Button nativeButton={false} render={<Link href="/pay-period-configs/new" />}>
                 <PlusIcon className="size-4" />
                 {t("payPeriodConfigs.newConfig")}
               </Button>
@@ -123,8 +122,6 @@ export default function PayPeriodConfigsPage() {
           </div>
         </div>
       ) : null}
-
-      <PayPeriodConfigFormDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </>
   );
 }

@@ -6,14 +6,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon, PlusIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,7 +34,13 @@ const payrollCalendarFormSchema = z.object({
 
 type PayrollCalendarFormValues = z.infer<typeof payrollCalendarFormSchema>;
 
-function PayrollCalendarForm({ calendar, onDone }: { calendar?: PayrollCalendar; onDone: () => void }) {
+export function PayrollCalendarForm({
+  calendar,
+  onDone,
+}: {
+  calendar?: PayrollCalendar;
+  onDone: (saved: PayrollCalendar) => void;
+}) {
   const isEdit = Boolean(calendar);
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -77,7 +75,7 @@ function PayrollCalendarForm({ calendar, onDone }: { calendar?: PayrollCalendar;
       // just whichever params the list page happens to be showing right now.
       queryClient.invalidateQueries({ queryKey: ["payroll-calendars"] });
       queryClient.invalidateQueries({ queryKey: queryKeys.payrollCalendar(saved._id) });
-      onDone();
+      onDone(saved);
     },
     onError: (error) => {
       toast.error(isEdit ? t("payrollCalendars.couldntUpdate") : t("payrollCalendars.couldntCreate"), {
@@ -176,39 +174,12 @@ function PayrollCalendarForm({ calendar, onDone }: { calendar?: PayrollCalendar;
         </div>
       </div>
 
-      <DialogFooter>
+      <div className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending ? <Loader2Icon className="size-4 animate-spin" /> : null}
           {isEdit ? t("common.saveChanges") : t("common.create")}
         </Button>
-      </DialogFooter>
+      </div>
     </form>
-  );
-}
-
-export function PayrollCalendarFormDialog({
-  open,
-  onOpenChange,
-  calendar,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  calendar?: PayrollCalendar;
-}) {
-  const { t } = useTranslation();
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{calendar ? t("payrollCalendars.editCalendar") : t("payrollCalendars.newCalendar")}</DialogTitle>
-          <DialogDescription>
-            {calendar ? t("payrollCalendars.editCalendarDescription") : t("payrollCalendars.newCalendarDescription")}
-          </DialogDescription>
-        </DialogHeader>
-        {open ? (
-          <PayrollCalendarForm key={calendar?._id ?? "new"} calendar={calendar} onDone={() => onOpenChange(false)} />
-        ) : null}
-      </DialogContent>
-    </Dialog>
   );
 }

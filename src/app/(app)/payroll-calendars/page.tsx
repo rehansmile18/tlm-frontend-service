@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
@@ -10,7 +11,6 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/data-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PayrollCalendarFormDialog } from "@/components/pay-configs/payroll-calendar-form-dialog";
 import { payrollCalendarsApi, type PayrollCalendarListParams } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
@@ -25,7 +25,6 @@ export default function PayrollCalendarsPage() {
   const { t } = useTranslation();
   const canWrite = hasPermission(user, "payrollCalendar:write");
 
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [page, setPage] = useState(1);
 
   // TODO: PLATFORM_ADMIN has no clientId of their own — this scopes the list to "no client"
@@ -48,7 +47,7 @@ export default function PayrollCalendarsPage() {
         description={t("payrollCalendars.description")}
         actions={
           canWrite ? (
-            <Button onClick={() => setDialogOpen(true)}>
+            <Button nativeButton={false} render={<Link href="/payroll-calendars/new" />}>
               <PlusIcon className="size-4" />
               {t("payrollCalendars.newCalendar")}
             </Button>
@@ -70,7 +69,7 @@ export default function PayrollCalendarsPage() {
           description={canWrite ? t("payrollCalendars.noneFoundHint") : undefined}
           action={
             canWrite ? (
-              <Button onClick={() => setDialogOpen(true)}>
+              <Button nativeButton={false} render={<Link href="/payroll-calendars/new" />}>
                 <PlusIcon className="size-4" />
                 {t("payrollCalendars.newCalendar")}
               </Button>
@@ -119,8 +118,6 @@ export default function PayrollCalendarsPage() {
           </div>
         </div>
       ) : null}
-
-      <PayrollCalendarFormDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </>
   );
 }

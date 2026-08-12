@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -10,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/data-state";
-import { SiteFormDialog } from "@/components/sites/site-form-dialog";
 import { sitesApi } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
@@ -31,7 +29,6 @@ export default function SiteDetailPage() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const canWrite = hasPermission(user, "site:write");
-  const [editOpen, setEditOpen] = useState(false);
 
   const siteQuery = useQuery({ queryKey: queryKeys.site(siteId), queryFn: () => sitesApi.get(siteId) });
 
@@ -59,7 +56,7 @@ export default function SiteDetailPage() {
         description={site.siteId}
         actions={
           canWrite ? (
-            <Button size="sm" variant="outline" onClick={() => setEditOpen(true)}>
+            <Button size="sm" variant="outline" nativeButton={false} render={<Link href={`/sites/${siteId}/edit`} />}>
               <PencilIcon className="size-3.5" />
               {t("common.edit")}
             </Button>
@@ -81,8 +78,6 @@ export default function SiteDetailPage() {
           </dl>
         </CardContent>
       </Card>
-
-      <SiteFormDialog open={editOpen} onOpenChange={setEditOpen} site={site} />
     </>
   );
 }

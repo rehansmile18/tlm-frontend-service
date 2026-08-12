@@ -6,14 +6,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,7 +23,7 @@ const siteFormSchema = z.object({
 
 type SiteFormValues = z.infer<typeof siteFormSchema>;
 
-function SiteForm({ site, onDone }: { site?: Site; onDone: () => void }) {
+export function SiteForm({ site, onDone }: { site?: Site; onDone: (saved: Site) => void }) {
   const isEdit = Boolean(site);
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -66,7 +58,7 @@ function SiteForm({ site, onDone }: { site?: Site; onDone: () => void }) {
       // whichever params the list page happens to be showing right now.
       queryClient.invalidateQueries({ queryKey: ["sites"] });
       queryClient.invalidateQueries({ queryKey: queryKeys.site(saved._id) });
-      onDone();
+      onDone(saved);
     },
     onError: (error) => {
       toast.error(isEdit ? t("sites.couldntUpdate") : t("sites.couldntCreate"), {
@@ -143,35 +135,12 @@ function SiteForm({ site, onDone }: { site?: Site; onDone: () => void }) {
         {errors.timezone ? <p className="text-xs text-destructive">{t("common.required")}</p> : null}
       </div>
 
-      <DialogFooter>
+      <div className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending ? <Loader2Icon className="size-4 animate-spin" /> : null}
           {isEdit ? t("common.saveChanges") : t("common.create")}
         </Button>
-      </DialogFooter>
+      </div>
     </form>
-  );
-}
-
-export function SiteFormDialog({
-  open,
-  onOpenChange,
-  site,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  site?: Site;
-}) {
-  const { t } = useTranslation();
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{site ? t("sites.editSite") : t("sites.newSite")}</DialogTitle>
-          <DialogDescription>{site ? t("sites.editSiteDescription") : t("sites.newSiteDescription")}</DialogDescription>
-        </DialogHeader>
-        {open ? <SiteForm key={site?._id ?? "new"} site={site} onDone={() => onOpenChange(false)} /> : null}
-      </DialogContent>
-    </Dialog>
   );
 }

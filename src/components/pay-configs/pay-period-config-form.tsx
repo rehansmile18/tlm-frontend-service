@@ -6,14 +6,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -80,7 +72,13 @@ const payPeriodConfigFormSchema = z
 
 type PayPeriodConfigFormValues = z.infer<typeof payPeriodConfigFormSchema>;
 
-function PayPeriodConfigForm({ config, onDone }: { config?: PayPeriodConfig; onDone: () => void }) {
+export function PayPeriodConfigForm({
+  config,
+  onDone,
+}: {
+  config?: PayPeriodConfig;
+  onDone: (saved: PayPeriodConfig) => void;
+}) {
   const isEdit = Boolean(config);
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -160,7 +158,7 @@ function PayPeriodConfigForm({ config, onDone }: { config?: PayPeriodConfig; onD
       // not just whichever params the list page happens to be showing right now.
       queryClient.invalidateQueries({ queryKey: ["pay-period-configs"] });
       queryClient.invalidateQueries({ queryKey: queryKeys.payPeriodConfig(saved._id) });
-      onDone();
+      onDone(saved);
     },
     onError: (error) => {
       toast.error(isEdit ? t("payPeriodConfigs.couldntUpdate") : t("payPeriodConfigs.couldntCreate"), {
@@ -380,39 +378,12 @@ function PayPeriodConfigForm({ config, onDone }: { config?: PayPeriodConfig; onD
         />
       </div>
 
-      <DialogFooter>
+      <div className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending ? <Loader2Icon className="size-4 animate-spin" /> : null}
           {isEdit ? t("common.saveChanges") : t("common.create")}
         </Button>
-      </DialogFooter>
+      </div>
     </form>
-  );
-}
-
-export function PayPeriodConfigFormDialog({
-  open,
-  onOpenChange,
-  config,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  config?: PayPeriodConfig;
-}) {
-  const { t } = useTranslation();
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{config ? t("payPeriodConfigs.editConfig") : t("payPeriodConfigs.newConfig")}</DialogTitle>
-          <DialogDescription>
-            {config ? t("payPeriodConfigs.editConfigDescription") : t("payPeriodConfigs.newConfigDescription")}
-          </DialogDescription>
-        </DialogHeader>
-        {open ? (
-          <PayPeriodConfigForm key={config?._id ?? "new"} config={config} onDone={() => onOpenChange(false)} />
-        ) : null}
-      </DialogContent>
-    </Dialog>
   );
 }

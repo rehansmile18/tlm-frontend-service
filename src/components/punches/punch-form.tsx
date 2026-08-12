@@ -6,20 +6,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Combobox, ComboboxItem } from "@/components/ui/combobox";
 import { humanizeError } from "@/components/data-state";
 import { useEditableClientId } from "@/components/client-picker-field";
-import { employeesApi, sitesApi, tasksApi, punchesApi, type CreatePunchBody } from "@/lib/resources";
+import { employeesApi, sitesApi, tasksApi, punchesApi, type CreatePunchBody, type Punch } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { useTranslation } from "@/lib/i18n/i18n";
 
@@ -40,7 +33,7 @@ const punchFormSchema = z
 
 type PunchFormValues = z.infer<typeof punchFormSchema>;
 
-function PunchForm({ onDone }: { onDone: () => void }) {
+export function PunchForm({ onDone }: { onDone: (saved: Punch) => void }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { clientId, picker: clientPicker } = useEditableClientId();
@@ -98,12 +91,12 @@ function PunchForm({ onDone }: { onDone: () => void }) {
       };
       return punchesApi.create(body);
     },
-    onSuccess: () => {
+    onSuccess: (saved) => {
       toast.success(t("punches.created"));
       // Loose prefix invalidation: matches every ["punches", ...params] list query, not just
       // whichever filters the list page happens to be showing right now.
       queryClient.invalidateQueries({ queryKey: ["punches"] });
-      onDone();
+      onDone(saved);
     },
     onError: (error) => {
       toast.error(t("punches.couldntCreate"), { description: humanizeError(error) });
@@ -266,32 +259,12 @@ function PunchForm({ onDone }: { onDone: () => void }) {
         {errors.timezone ? <p className="text-xs text-destructive">{t("common.required")}</p> : null}
       </div>
 
-      <DialogFooter>
+      <div className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending ? <Loader2Icon className="size-4 animate-spin" /> : null}
           {t("common.create")}
         </Button>
-      </DialogFooter>
+      </div>
     </form>
-  );
-}
-
-export function PunchFormDialog({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const { t } = useTranslation();
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{t("punches.newPunch")}</DialogTitle>
-        </DialogHeader>
-        {open ? <PunchForm onDone={() => onOpenChange(false)} /> : null}
-      </DialogContent>
-    </Dialog>
   );
 }

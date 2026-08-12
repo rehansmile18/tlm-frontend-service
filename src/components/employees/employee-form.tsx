@@ -6,14 +6,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,7 +33,7 @@ const employeeFormSchema = z.object({
 
 type EmployeeFormValues = z.infer<typeof employeeFormSchema>;
 
-function EmployeeForm({ employee, onDone }: { employee?: Employee; onDone: () => void }) {
+export function EmployeeForm({ employee, onDone }: { employee?: Employee; onDone: (saved: Employee) => void }) {
   const isEdit = Boolean(employee);
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -103,7 +95,7 @@ function EmployeeForm({ employee, onDone }: { employee?: Employee; onDone: () =>
       // whichever params the list page happens to be showing right now.
       queryClient.invalidateQueries({ queryKey: ["employees"] });
       queryClient.invalidateQueries({ queryKey: queryKeys.employee(saved._id) });
-      onDone();
+      onDone(saved);
     },
     onError: (error) => {
       toast.error(isEdit ? t("employees.couldntUpdate") : t("employees.couldntCreate"), {
@@ -216,39 +208,12 @@ function EmployeeForm({ employee, onDone }: { employee?: Employee; onDone: () =>
         </div>
       ) : null}
 
-      <DialogFooter>
+      <div className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending ? <Loader2Icon className="size-4 animate-spin" /> : null}
           {isEdit ? t("common.saveChanges") : t("common.create")}
         </Button>
-      </DialogFooter>
+      </div>
     </form>
-  );
-}
-
-export function EmployeeFormDialog({
-  open,
-  onOpenChange,
-  employee,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  employee?: Employee;
-}) {
-  const { t } = useTranslation();
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{employee ? t("employees.editEmployee") : t("employees.newEmployee")}</DialogTitle>
-          <DialogDescription>
-            {employee ? t("employees.editEmployeeDescription") : t("employees.newEmployeeDescription")}
-          </DialogDescription>
-        </DialogHeader>
-        {open ? (
-          <EmployeeForm key={employee?._id ?? "new"} employee={employee} onDone={() => onOpenChange(false)} />
-        ) : null}
-      </DialogContent>
-    </Dialog>
   );
 }

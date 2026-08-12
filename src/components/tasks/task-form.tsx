@@ -6,14 +6,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,7 +25,7 @@ const taskFormSchema = z.object({
 
 type TaskFormValues = z.infer<typeof taskFormSchema>;
 
-function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) {
+export function TaskForm({ task, onDone }: { task?: Task; onDone: (saved: Task) => void }) {
   const isEdit = Boolean(task);
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -67,7 +59,7 @@ function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) {
       // whichever params the list page happens to be showing right now.
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: queryKeys.task(saved._id) });
-      onDone();
+      onDone(saved);
     },
     onError: (error) => {
       toast.error(isEdit ? t("tasks.couldntUpdate") : t("tasks.couldntCreate"), {
@@ -125,35 +117,12 @@ function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) {
         {errors.code ? <p className="text-xs text-destructive">{t("common.required")}</p> : null}
       </div>
 
-      <DialogFooter>
+      <div className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending ? <Loader2Icon className="size-4 animate-spin" /> : null}
           {isEdit ? t("common.saveChanges") : t("common.create")}
         </Button>
-      </DialogFooter>
+      </div>
     </form>
-  );
-}
-
-export function TaskFormDialog({
-  open,
-  onOpenChange,
-  task,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  task?: Task;
-}) {
-  const { t } = useTranslation();
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{task ? t("tasks.editTask") : t("tasks.newTask")}</DialogTitle>
-          <DialogDescription>{task ? t("tasks.editTaskDescription") : t("tasks.newTaskDescription")}</DialogDescription>
-        </DialogHeader>
-        {open ? <TaskForm key={task?._id ?? "new"} task={task} onDone={() => onOpenChange(false)} /> : null}
-      </DialogContent>
-    </Dialog>
   );
 }

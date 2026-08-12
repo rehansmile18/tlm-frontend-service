@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -8,13 +7,6 @@ import { format, parseISO } from "date-fns";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,7 +40,7 @@ function toDatetimeLocal(iso: string | null): string {
   return Number.isNaN(date.getTime()) ? "" : format(date, "yyyy-MM-dd'T'HH:mm");
 }
 
-function PunchCorrectionForm({ punch, onDone }: { punch: Punch; onDone: (correctedId: string) => void }) {
+export function PunchCorrectionForm({ punch, onDone }: { punch: Punch; onDone: (correctedId: string) => void }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
@@ -215,48 +207,12 @@ function PunchCorrectionForm({ punch, onDone }: { punch: Punch; onDone: (correct
         {errors.timezone ? <p className="text-xs text-destructive">{t("common.required")}</p> : null}
       </div>
 
-      <DialogFooter>
+      <div className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending ? <Loader2Icon className="size-4 animate-spin" /> : null}
           {t("punches.correctPunch")}
         </Button>
-      </DialogFooter>
+      </div>
     </form>
-  );
-}
-
-export function PunchCorrectionDialog({
-  punch,
-  open,
-  onOpenChange,
-}: {
-  punch: Punch;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const router = useRouter();
-  const { t } = useTranslation();
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{t("punches.correctPunch")}</DialogTitle>
-        </DialogHeader>
-        {open ? (
-          <PunchCorrectionForm
-            key={punch._id}
-            punch={punch}
-            onDone={(correctedId) => {
-              onOpenChange(false);
-              // A correction never mutates punch._id in place — it returns a brand-new punch
-              // (correctionOfPunchId links back to this one), so jump straight to it rather than
-              // leaving the user staring at the now-"corrected", read-only original.
-              router.push(`/punches/${correctedId}`);
-            }}
-          />
-        ) : null}
-      </DialogContent>
-    </Dialog>
   );
 }

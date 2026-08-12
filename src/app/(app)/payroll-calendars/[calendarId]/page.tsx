@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -11,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/data-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PayrollCalendarFormDialog } from "@/components/pay-configs/payroll-calendar-form-dialog";
 import { payrollCalendarsApi } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
@@ -25,7 +23,6 @@ export default function PayrollCalendarDetailPage() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const canWrite = hasPermission(user, "payrollCalendar:write");
-  const [editOpen, setEditOpen] = useState(false);
 
   const query = useQuery({
     queryKey: queryKeys.payrollCalendar(calendarId),
@@ -58,7 +55,11 @@ export default function PayrollCalendarDetailPage() {
             title={calendar.name}
             actions={
               canWrite ? (
-                <Button variant="outline" onClick={() => setEditOpen(true)}>
+                <Button
+                  variant="outline"
+                  nativeButton={false}
+                  render={<Link href={`/payroll-calendars/${calendarId}/edit`} />}
+                >
                   {t("common.edit")}
                 </Button>
               ) : null
@@ -94,8 +95,6 @@ export default function PayrollCalendarDetailPage() {
               )}
             </CardContent>
           </Card>
-
-          <PayrollCalendarFormDialog open={editOpen} onOpenChange={setEditOpen} calendar={calendar} />
         </>
       )}
     </>

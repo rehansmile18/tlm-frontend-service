@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -11,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/status-badge";
 import { ErrorState } from "@/components/data-state";
-import { EmployeeFormDialog } from "@/components/employees/employee-form-dialog";
 import { EmployeeSitesPanel } from "@/components/employees/employee-sites-panel";
 import { employeeGroupsApi, employeesApi, payPeriodConfigsApi } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
@@ -29,7 +27,6 @@ export default function EmployeeDetailPage() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const canWrite = hasPermission(user, "employee:write");
-  const [editOpen, setEditOpen] = useState(false);
 
   const query = useQuery({
     queryKey: queryKeys.employee(employeeId),
@@ -78,7 +75,7 @@ export default function EmployeeDetailPage() {
                   {employee.status === "active" ? t("employees.active") : t("employees.inactive")}
                 </StatusBadge>
                 {canWrite ? (
-                  <Button variant="outline" onClick={() => setEditOpen(true)}>
+                  <Button variant="outline" nativeButton={false} render={<Link href={`/employees/${employeeId}/edit`} />}>
                     {t("common.edit")}
                   </Button>
                 ) : null}
@@ -117,8 +114,6 @@ export default function EmployeeDetailPage() {
           </Card>
 
           <EmployeeSitesPanel employeeId={employee._id} clientId={employee.clientId} />
-
-          <EmployeeFormDialog open={editOpen} onOpenChange={setEditOpen} employee={employee} />
         </>
       )}
     </>

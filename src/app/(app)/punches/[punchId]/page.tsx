@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -12,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { StatusBadge } from "@/components/status-badge";
 import { ErrorState } from "@/components/data-state";
-import { PunchCorrectionDialog } from "@/components/punches/punch-correction-dialog";
 import { punchesApi, sitesApi, type Punch } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
@@ -34,7 +32,6 @@ export default function PunchDetailPage() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const canWrite = hasPermission(user, "punch:write");
-  const [correctOpen, setCorrectOpen] = useState(false);
 
   const query = useQuery({
     queryKey: queryKeys.punch(punchId),
@@ -86,7 +83,7 @@ export default function PunchDetailPage() {
               <div className="flex items-center gap-2">
                 <StatusBadge tone={STATUS_TONE[punch.status]}>{t(`punches.status.${punch.status}`)}</StatusBadge>
                 {canCorrect ? (
-                  <Button variant="outline" onClick={() => setCorrectOpen(true)}>
+                  <Button variant="outline" nativeButton={false} render={<Link href={`/punches/${punchId}/correct`} />}>
                     {t("punches.correctPunch")}
                   </Button>
                 ) : null}
@@ -148,8 +145,6 @@ export default function PunchDetailPage() {
               ) : null}
             </CardContent>
           </Card>
-
-          <PunchCorrectionDialog punch={punch} open={correctOpen} onOpenChange={setCorrectOpen} />
         </>
       )}
     </>

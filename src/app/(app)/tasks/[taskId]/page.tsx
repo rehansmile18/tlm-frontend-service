@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -10,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/data-state";
-import { TaskFormDialog } from "@/components/tasks/task-form-dialog";
 import { tasksApi } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
@@ -31,7 +29,6 @@ export default function TaskDetailPage() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const canWrite = hasPermission(user, "task:write");
-  const [editOpen, setEditOpen] = useState(false);
 
   const taskQuery = useQuery({ queryKey: queryKeys.task(taskId), queryFn: () => tasksApi.get(taskId) });
 
@@ -59,7 +56,7 @@ export default function TaskDetailPage() {
         description={task.code ?? undefined}
         actions={
           canWrite ? (
-            <Button size="sm" variant="outline" onClick={() => setEditOpen(true)}>
+            <Button size="sm" variant="outline" nativeButton={false} render={<Link href={`/tasks/${taskId}/edit`} />}>
               <PencilIcon className="size-3.5" />
               {t("common.edit")}
             </Button>
@@ -80,8 +77,6 @@ export default function TaskDetailPage() {
           </dl>
         </CardContent>
       </Card>
-
-      <TaskFormDialog open={editOpen} onOpenChange={setEditOpen} task={task} />
     </>
   );
 }

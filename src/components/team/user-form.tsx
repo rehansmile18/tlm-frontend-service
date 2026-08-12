@@ -6,14 +6,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -67,7 +59,13 @@ function buildUserFormSchema(isEdit: boolean) {
 
 type UserFormValues = z.infer<ReturnType<typeof buildUserFormSchema>>;
 
-function UserForm({ targetUser, onDone }: { targetUser?: UserRecord; onDone: () => void }) {
+export function UserForm({
+  targetUser,
+  onDone,
+}: {
+  targetUser?: UserRecord;
+  onDone: (saved: UserRecord) => void;
+}) {
   const isEdit = Boolean(targetUser);
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -144,7 +142,7 @@ function UserForm({ targetUser, onDone }: { targetUser?: UserRecord; onDone: () 
       // whichever params the list page happens to be showing right now.
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: queryKeys.user(saved._id) });
-      onDone();
+      onDone(saved);
     },
     onError: (error) => {
       toast.error(isEdit ? t("team.couldntUpdate") : t("team.couldntCreate"), {
@@ -343,35 +341,12 @@ function UserForm({ targetUser, onDone }: { targetUser?: UserRecord; onDone: () 
         />
       </div>
 
-      <DialogFooter>
+      <div className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending ? <Loader2Icon className="size-4 animate-spin" /> : null}
           {isEdit ? t("common.saveChanges") : t("common.create")}
         </Button>
-      </DialogFooter>
+      </div>
     </form>
-  );
-}
-
-export function UserFormDialog({
-  open,
-  onOpenChange,
-  user,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  user?: UserRecord;
-}) {
-  const { t } = useTranslation();
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{user ? t("team.editUser") : t("team.newUser")}</DialogTitle>
-          <DialogDescription>{user ? t("team.editUserDescription") : t("team.newUserDescription")}</DialogDescription>
-        </DialogHeader>
-        {open ? <UserForm key={user?._id ?? "new"} targetUser={user} onDone={() => onOpenChange(false)} /> : null}
-      </DialogContent>
-    </Dialog>
   );
 }

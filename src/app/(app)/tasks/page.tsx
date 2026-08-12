@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
@@ -11,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/data-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { TaskFormDialog } from "@/components/tasks/task-form-dialog";
 import { tasksApi, type TaskListParams } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
@@ -26,7 +26,6 @@ export default function TasksPage() {
   const { t } = useTranslation();
   const canWrite = hasPermission(user, "task:write");
 
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
@@ -58,7 +57,7 @@ export default function TasksPage() {
         description={t("tasks.description")}
         actions={
           canWrite ? (
-            <Button onClick={() => setDialogOpen(true)}>
+            <Button nativeButton={false} render={<Link href="/tasks/new" />}>
               <PlusIcon className="size-4" />
               {t("tasks.newTask")}
             </Button>
@@ -90,7 +89,7 @@ export default function TasksPage() {
           description={!search && canWrite ? t("tasks.noneFoundHint") : undefined}
           action={
             !search && canWrite ? (
-              <Button onClick={() => setDialogOpen(true)}>
+              <Button nativeButton={false} render={<Link href="/tasks/new" />}>
                 <PlusIcon className="size-4" />
                 {t("tasks.newTask")}
               </Button>
@@ -135,8 +134,6 @@ export default function TasksPage() {
           </div>
         </div>
       ) : null}
-
-      <TaskFormDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </>
   );
 }

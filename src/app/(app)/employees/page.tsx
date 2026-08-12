@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
@@ -12,7 +13,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/status-badge";
 import { EmptyState, ErrorState } from "@/components/data-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { EmployeeFormDialog } from "@/components/employees/employee-form-dialog";
 import { employeeGroupsApi, employeesApi, type EmployeeListParams } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
@@ -27,7 +27,6 @@ export default function EmployeesPage() {
   const { t } = useTranslation();
   const canWrite = hasPermission(user, "employee:write");
 
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
@@ -69,7 +68,7 @@ export default function EmployeesPage() {
         description={t("employees.description")}
         actions={
           canWrite ? (
-            <Button onClick={() => setDialogOpen(true)}>
+            <Button nativeButton={false} render={<Link href="/employees/new" />}>
               <PlusIcon className="size-4" />
               {t("employees.newEmployee")}
             </Button>
@@ -101,7 +100,7 @@ export default function EmployeesPage() {
           description={!search && canWrite ? t("employees.noneFoundHint") : undefined}
           action={
             !search && canWrite ? (
-              <Button onClick={() => setDialogOpen(true)}>
+              <Button nativeButton={false} render={<Link href="/employees/new" />}>
                 <PlusIcon className="size-4" />
                 {t("employees.newEmployee")}
               </Button>
@@ -160,8 +159,6 @@ export default function EmployeesPage() {
           </div>
         </div>
       ) : null}
-
-      <EmployeeFormDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </>
   );
 }

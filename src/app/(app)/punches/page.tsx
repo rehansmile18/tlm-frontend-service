@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { format, subDays } from "date-fns";
@@ -15,7 +16,6 @@ import { Combobox, ComboboxItem } from "@/components/ui/combobox";
 import { StatusBadge } from "@/components/status-badge";
 import { EmptyState, ErrorState } from "@/components/data-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PunchFormDialog } from "@/components/punches/punch-form-dialog";
 import { employeesApi, sitesApi, punchesApi, type Punch, type PunchListParams } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
@@ -42,7 +42,6 @@ export default function PunchesPage() {
   const canWrite = hasPermission(user, "punch:write");
   const clientId = user?.clientId ?? "";
 
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [employeeId, setEmployeeId] = useState("");
   const [siteId, setSiteId] = useState("");
   const [from, setFrom] = useState(() => format(subDays(new Date(), 7), "yyyy-MM-dd"));
@@ -103,7 +102,7 @@ export default function PunchesPage() {
         description={t("punches.description")}
         actions={
           canWrite ? (
-            <Button onClick={() => setDialogOpen(true)}>
+            <Button nativeButton={false} render={<Link href="/punches/new" />}>
               <PlusIcon className="size-4" />
               {t("punches.newPunch")}
             </Button>
@@ -178,7 +177,7 @@ export default function PunchesPage() {
           description={t("punches.noneFoundHint")}
           action={
             canWrite ? (
-              <Button onClick={() => setDialogOpen(true)}>
+              <Button nativeButton={false} render={<Link href="/punches/new" />}>
                 <PlusIcon className="size-4" />
                 {t("punches.newPunch")}
               </Button>
@@ -243,8 +242,6 @@ export default function PunchesPage() {
           </div>
         </div>
       ) : null}
-
-      <PunchFormDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </>
   );
 }
