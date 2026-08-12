@@ -86,16 +86,30 @@ export const usersApi = {
 };
 
 // ---- Clients (TLM) ----
+// Per-module display-name overrides (e.g. renaming "Site" to "Business Unit"), shared by every
+// user of a client — one singular/plural pair per supported locale, since a single override
+// reused across languages would produce mixed-language sentences. Keyed by an opaque module key
+// this app defines (see module-registry.ts); TLM itself never inspects the keys.
+export type ModuleLabelOverrides = Record<string, Record<"en" | "es" | "ar", { singular: string; plural: string }>>;
+
 export interface ClientRecord {
   _id: string;
   name: string;
   country: string | null;
   enabledStates: string[];
   calendarFormat: string;
+  moduleLabels: ModuleLabelOverrides | null;
 }
 
 export const clientsApi = {
   me: () => tlmFetch<{ client: ClientRecord | null }>("/clients/me"),
+  // Self-service — CLIENT_ADMIN customizing their own client's module labels.
+  updateMe: (body: { moduleLabels: ModuleLabelOverrides | null }) =>
+    tlmFetch<ClientRecord>("/clients/me", { method: "PATCH", body }),
+  // PLATFORM_ADMIN has no client of their own, so `updateMe` doesn't apply to them.
+  update: (id: string, body: { moduleLabels: ModuleLabelOverrides | null }) =>
+    tlmFetch<ClientRecord>(`/clients/${id}`, { method: "PATCH", body }),
+  list: () => tlmFetch<{ items: ClientRecord[] }>("/clients"),
 };
 
 // ---- Employees (tlm-backend) ----

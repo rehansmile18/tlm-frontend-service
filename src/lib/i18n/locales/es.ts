@@ -78,6 +78,7 @@ const es: TranslationKeys = {
     signInSubtitle: "Inicia sesión para gestionar tus sitios, horarios y hojas de tiempo",
   },
   profile: {
+    moduleName: "Perfil",
     title: "Perfil",
     role: "Rol",
     client: "Cliente",
@@ -88,6 +89,7 @@ const es: TranslationKeys = {
     noPermissions: "No hay permisos asignados",
   },
   employees: {
+    moduleName: "Empleado",
     title: "Empleados",
     description: "Gestiona los registros de empleados, la asignación a grupos y el acceso a sitios.",
     newEmployee: "Nuevo empleado",
@@ -128,6 +130,7 @@ const es: TranslationKeys = {
     },
   },
   sites: {
+    moduleName: "Sitio",
     title: "Sitios",
     description: "Gestiona las ubicaciones físicas donde los empleados marcan su entrada.",
     newSite: "Nuevo sitio",
@@ -149,6 +152,7 @@ const es: TranslationKeys = {
     couldntUpdate: "No se pudo actualizar el sitio",
   },
   tasks: {
+    moduleName: "Tarea",
     title: "Tareas",
     description: "Gestiona las tareas para las que se programan y marcan los empleados.",
     newTask: "Nueva tarea",
@@ -169,6 +173,7 @@ const es: TranslationKeys = {
     couldntUpdate: "No se pudo actualizar la tarea",
   },
   payPeriodConfigs: {
+    moduleName: "Configuración de periodo de pago",
     title: "Configuraciones de periodos de pago",
     description: "Define cómo se calculan los periodos de pago para empleados y grupos.",
     newConfig: "Nueva configuración de periodo de pago",
@@ -208,6 +213,7 @@ const es: TranslationKeys = {
     couldntUpdate: "No se pudo actualizar la configuración de periodo de pago",
   },
   payrollCalendars: {
+    moduleName: "Calendario de nómina",
     title: "Calendarios de nómina",
     description: "Define las fechas de cierre de periodo y de pago que puede referenciar una configuración de periodo de pago.",
     newCalendar: "Nuevo calendario de nómina",
@@ -229,6 +235,7 @@ const es: TranslationKeys = {
     couldntUpdate: "No se pudo actualizar el calendario de nómina",
   },
   schedule: {
+    moduleName: "Horario",
     title: "Horarios",
     description: "Crea y gestiona el calendario de turnos planificados.",
     newShift: "Nuevo turno",
@@ -272,6 +279,7 @@ const es: TranslationKeys = {
     addShift: "Agregar turno",
   },
   punches: {
+    moduleName: "Marcación",
     title: "Marcaciones",
     description: "Consulta y corrige las marcaciones de tiempo registradas.",
     newPunch: "Nueva marcación",
@@ -298,6 +306,7 @@ const es: TranslationKeys = {
     couldntCorrect: "No se pudo corregir la marcación",
   },
   dashboard: {
+    moduleName: "Panel",
     title: "Panel",
     welcome: "Bienvenido de nuevo",
     overview: "Esto es lo que ocurre hoy en tus sitios.",
@@ -313,6 +322,7 @@ const es: TranslationKeys = {
     viewTimesheets: "Ver hojas de tiempo",
   },
   team: {
+    moduleName: "Equipo",
     title: "Equipo y permisos",
     description: "Gestiona las cuentas de usuario, los roles y los permisos otorgados para este cliente.",
     newUser: "Nuevo usuario",
@@ -342,6 +352,7 @@ const es: TranslationKeys = {
     couldntUpdate: "No se pudo actualizar el usuario",
   },
   timesheets: {
+    moduleName: "Hoja de tiempo",
     title: "Hojas de tiempo",
     description: "Revisa las hojas de tiempo calculadas por periodo de pago y su historial de auditoría.",
     employee: "Empleado",
@@ -390,6 +401,7 @@ const es: TranslationKeys = {
     couldntVoid: "No se pudo anular la hoja de tiempo",
   },
   processing: {
+    moduleName: "Procesamiento",
     title: "Ejecutar procesamiento",
     description: "Calcula las hojas de tiempo de los empleados de un cliente a partir de una fecha determinada.",
     client: "Cliente",
@@ -408,6 +420,23 @@ const es: TranslationKeys = {
     error: "Error",
     triggered: "Procesamiento ejecutado",
     couldntTrigger: "No se pudo ejecutar el procesamiento",
+  },
+  moduleNames: {
+    title: "Personalizar nombres de módulos",
+    description:
+      "Cambia el nombre de cualquier módulo para todos los usuarios de tu organización, por ejemplo, cambia \"Sitio\" por \"Unidad de Negocio\". Proporciona el nombre en los tres idiomas para que ninguna frase mezcle idiomas.",
+    profileLinkTitle: "Personalizar nombres de módulos",
+    profileLinkDescription: "Cambia el nombre de módulos como Sitios o Empleados para toda tu organización.",
+    backToProfile: "Volver al perfil",
+    singular: "Singular",
+    plural: "Plural",
+    resetToDefault: "Restablecer al valor predeterminado",
+    selectClient: "Cliente",
+    selectClientPlaceholder: "Selecciona un cliente…",
+    noClientSelected: "Selecciona un cliente para personalizar sus nombres de módulos.",
+    saved: "Nombres de módulos guardados",
+    couldntSave: "No se pudieron guardar los nombres de módulos",
+    couldntLoadClients: "No se pudieron cargar los clientes",
   },
 };
 

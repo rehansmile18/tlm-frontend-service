@@ -2,7 +2,9 @@
 
 import type { ReactNode } from "react";
 import { useMemo } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { ChevronRightIcon } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { sitesApi } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
-import { useAuth } from "@/lib/auth";
+import { useAuth, useRole } from "@/lib/auth";
 import { LOCALES, useTranslation } from "@/lib/i18n/i18n";
 
 function ProfileRow({ label, children }: { label: string; children: ReactNode }) {
@@ -24,6 +26,7 @@ function ProfileRow({ label, children }: { label: string; children: ReactNode })
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  const { isClientAdmin, isPlatformAdmin } = useRole();
   const { t, locale, setLocale } = useTranslation();
 
   const siteIds = user?.siteIds ?? [];
@@ -117,6 +120,22 @@ export default function ProfilePage() {
       {/* Read-only by design: TLM's usersApi (see resources.ts) is for admins managing OTHER
           users' accounts — there is no "update my own profile" endpoint for a user to edit their
           own email/role/sites/permissions, so no edit form or button is offered here. */}
+
+      {/* Module-name customization is a client-wide (tenant) setting, not personal — only the
+          roles that can actually edit it (see /profile/module-names) get the entry point here. */}
+      {isClientAdmin || isPlatformAdmin ? (
+        <Link href="/profile/module-names">
+          <Card className="transition-colors hover:bg-muted/50">
+            <CardContent className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium">{t("moduleNames.profileLinkTitle")}</p>
+                <p className="text-sm text-muted-foreground">{t("moduleNames.profileLinkDescription")}</p>
+              </div>
+              <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        </Link>
+      ) : null}
     </>
   );
 }

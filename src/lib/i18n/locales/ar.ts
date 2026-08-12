@@ -78,6 +78,7 @@ const ar: TranslationKeys = {
     signInSubtitle: "سجّل الدخول لإدارة مواقعك وجداولك وكشوف الدوام الخاصة بك",
   },
   profile: {
+    moduleName: "الملف الشخصي",
     title: "الملف الشخصي",
     role: "الدور",
     client: "العميل",
@@ -88,6 +89,7 @@ const ar: TranslationKeys = {
     noPermissions: "لا توجد صلاحيات مخصّصة",
   },
   employees: {
+    moduleName: "موظف",
     title: "الموظفون",
     description: "إدارة سجلات الموظفين وتخصيص المجموعات والوصول إلى المواقع.",
     newEmployee: "موظف جديد",
@@ -128,6 +130,7 @@ const ar: TranslationKeys = {
     },
   },
   sites: {
+    moduleName: "موقع",
     title: "المواقع",
     description: "إدارة المواقع الفعلية التي يسجّل فيها الموظفون حضورهم.",
     newSite: "موقع جديد",
@@ -149,6 +152,7 @@ const ar: TranslationKeys = {
     couldntUpdate: "تعذر تحديث الموقع",
   },
   tasks: {
+    moduleName: "مهمة",
     title: "المهام",
     description: "إدارة المهام التي تتم جدولة الموظفين وتسجيل حضورهم عليها.",
     newTask: "مهمة جديدة",
@@ -169,6 +173,7 @@ const ar: TranslationKeys = {
     couldntUpdate: "تعذر تحديث المهمة",
   },
   payPeriodConfigs: {
+    moduleName: "إعداد فترة الدفع",
     title: "إعدادات فترات الدفع",
     description: "حدّد كيفية احتساب فترات الدفع للموظفين والمجموعات.",
     newConfig: "إعداد فترة دفع جديد",
@@ -208,6 +213,7 @@ const ar: TranslationKeys = {
     couldntUpdate: "تعذر تحديث إعداد فترة الدفع",
   },
   payrollCalendars: {
+    moduleName: "تقويم الرواتب",
     title: "تقاويم الرواتب",
     description: "حدّد تواريخ نهاية الفترة والدفع التي يمكن أن يشير إليها إعداد فترة الدفع.",
     newCalendar: "تقويم رواتب جديد",
@@ -229,6 +235,7 @@ const ar: TranslationKeys = {
     couldntUpdate: "تعذر تحديث تقويم الرواتب",
   },
   schedule: {
+    moduleName: "جدول",
     title: "الجدولة",
     description: "إنشاء وإدارة جدول المناوبات المخطّطة.",
     newShift: "مناوبة جديدة",
@@ -272,6 +279,7 @@ const ar: TranslationKeys = {
     addShift: "إضافة مناوبة",
   },
   punches: {
+    moduleName: "تسجيل حضور",
     title: "تسجيلات الحضور",
     description: "عرض وتصحيح تسجيلات الحضور الأولية.",
     newPunch: "تسجيل جديد",
@@ -298,6 +306,7 @@ const ar: TranslationKeys = {
     couldntCorrect: "تعذر تصحيح التسجيل",
   },
   dashboard: {
+    moduleName: "لوحة التحكم",
     title: "لوحة التحكم",
     welcome: "مرحبًا بعودتك",
     overview: "هذا ما يحدث في مواقعك اليوم.",
@@ -313,6 +322,7 @@ const ar: TranslationKeys = {
     viewTimesheets: "عرض كشوف الدوام",
   },
   team: {
+    moduleName: "فريق",
     title: "الفريق والصلاحيات",
     description: "إدارة حسابات المستخدمين والأدوار وصلاحيات هذا العميل.",
     newUser: "مستخدم جديد",
@@ -342,6 +352,7 @@ const ar: TranslationKeys = {
     couldntUpdate: "تعذر تحديث المستخدم",
   },
   timesheets: {
+    moduleName: "كشف دوام",
     title: "كشوف الدوام",
     description: "مراجعة كشوف الدوام المحسوبة لكل فترة دفع وسجل التدقيق الخاص بها.",
     employee: "الموظف",
@@ -390,6 +401,7 @@ const ar: TranslationKeys = {
     couldntVoid: "تعذر إلغاء كشف الدوام",
   },
   processing: {
+    moduleName: "معالجة",
     title: "تشغيل المعالجة",
     description: "احسب كشوف الدوام لموظفي العميل حتى تاريخ معيّن.",
     client: "العميل",
@@ -408,6 +420,23 @@ const ar: TranslationKeys = {
     error: "خطأ",
     triggered: "اكتملت عملية المعالجة",
     couldntTrigger: "تعذر تشغيل المعالجة",
+  },
+  moduleNames: {
+    title: "تخصيص أسماء الوحدات",
+    description:
+      "أعد تسمية أي وحدة لجميع مستخدمي مؤسستك — على سبيل المثال أعد تسمية \"موقع\" إلى \"وحدة عمل\". أدخل الاسم باللغات الثلاث حتى لا تختلط اللغات داخل أي جملة.",
+    profileLinkTitle: "تخصيص أسماء الوحدات",
+    profileLinkDescription: "أعد تسمية وحدات مثل المواقع أو الموظفين لمؤسستك بالكامل.",
+    backToProfile: "الرجوع إلى الملف الشخصي",
+    singular: "المفرد",
+    plural: "الجمع",
+    resetToDefault: "إعادة التعيين إلى الافتراضي",
+    selectClient: "العميل",
+    selectClientPlaceholder: "اختر عميلاً…",
+    noClientSelected: "اختر عميلاً لتخصيص أسماء وحداته.",
+    saved: "تم حفظ أسماء الوحدات",
+    couldntSave: "تعذر حفظ أسماء الوحدات",
+    couldntLoadClients: "تعذر تحميل العملاء",
   },
 };
 

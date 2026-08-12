@@ -78,6 +78,7 @@ const en = {
     signInSubtitle: "Sign in to manage your sites, schedules, and timesheets",
   },
   profile: {
+    moduleName: "Profile",
     title: "Profile",
     role: "Role",
     client: "Client",
@@ -88,6 +89,7 @@ const en = {
     noPermissions: "No permissions assigned",
   },
   employees: {
+    moduleName: "Employee",
     title: "Employees",
     description: "Manage employee records, group assignments, and site access.",
     newEmployee: "New employee",
@@ -128,6 +130,7 @@ const en = {
     },
   },
   sites: {
+    moduleName: "Site",
     title: "Sites",
     description: "Manage the physical locations employees clock in at.",
     newSite: "New site",
@@ -149,6 +152,7 @@ const en = {
     couldntUpdate: "Couldn't update site",
   },
   tasks: {
+    moduleName: "Task",
     title: "Tasks",
     description: "Manage the job tasks employees are scheduled and punched against.",
     newTask: "New task",
@@ -169,6 +173,7 @@ const en = {
     couldntUpdate: "Couldn't update task",
   },
   payPeriodConfigs: {
+    moduleName: "Pay Period Config",
     title: "Pay period configs",
     description: "Define how pay periods are calculated for employees and groups.",
     newConfig: "New pay period config",
@@ -208,6 +213,7 @@ const en = {
     couldntUpdate: "Couldn't update pay period config",
   },
   payrollCalendars: {
+    moduleName: "Payroll Calendar",
     title: "Payroll calendars",
     description: "Define the period-end and pay dates a pay period config can reference.",
     newCalendar: "New payroll calendar",
@@ -229,6 +235,7 @@ const en = {
     couldntUpdate: "Couldn't update payroll calendar",
   },
   schedule: {
+    moduleName: "Schedule",
     title: "Schedule",
     description: "Build and manage the roster of planned shifts.",
     newShift: "New shift",
@@ -272,6 +279,7 @@ const en = {
     addShift: "Add shift",
   },
   punches: {
+    moduleName: "Punch",
     title: "Punches",
     description: "View and correct raw timecard punches.",
     newPunch: "New punch",
@@ -298,6 +306,7 @@ const en = {
     couldntCorrect: "Couldn't correct punch",
   },
   dashboard: {
+    moduleName: "Dashboard",
     title: "Dashboard",
     welcome: "Welcome back",
     overview: "Here's what's happening across your sites today.",
@@ -313,6 +322,7 @@ const en = {
     viewTimesheets: "View timesheets",
   },
   team: {
+    moduleName: "Team",
     title: "Team & Permissions",
     description: "Manage user accounts, roles, and permission grants for this client.",
     newUser: "New user",
@@ -342,6 +352,7 @@ const en = {
     couldntUpdate: "Couldn't update user",
   },
   timesheets: {
+    moduleName: "Timesheet",
     title: "Timesheets",
     description: "Review calculated pay period timesheets and their audit history.",
     employee: "Employee",
@@ -390,6 +401,7 @@ const en = {
     couldntVoid: "Couldn't void timesheet",
   },
   processing: {
+    moduleName: "Processing",
     title: "Run processing",
     description: "Calculate timesheets for a client's employees as of a given date.",
     client: "Client",
@@ -408,6 +420,23 @@ const en = {
     error: "Error",
     triggered: "Processing run completed",
     couldntTrigger: "Couldn't run processing",
+  },
+  moduleNames: {
+    title: "Customize module names",
+    description:
+      "Rename any module for everyone in your organization — e.g. rename \"Site\" to \"Business Unit\". Provide the name in all three languages so nothing reads as a mix of languages.",
+    profileLinkTitle: "Customize module names",
+    profileLinkDescription: "Rename modules like Sites or Employees for your whole organization.",
+    backToProfile: "Back to profile",
+    singular: "Singular",
+    plural: "Plural",
+    resetToDefault: "Reset to default",
+    selectClient: "Client",
+    selectClientPlaceholder: "Select a client…",
+    noClientSelected: "Select a client to customize its module names.",
+    saved: "Module names saved",
+    couldntSave: "Couldn't save module names",
+    couldntLoadClients: "Couldn't load clients",
   },
 };
 
