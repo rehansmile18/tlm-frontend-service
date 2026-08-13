@@ -13,12 +13,17 @@ import { Combobox, ComboboxItem } from "@/components/ui/combobox";
 import { humanizeError } from "@/components/data-state";
 import { useEditableClientId } from "@/components/client-picker-field";
 import { TimezoneCombobox } from "@/components/timezone-combobox";
+import { LocationFields } from "@/components/location-fields";
+import { CustomFieldsSection } from "@/components/custom-fields-section";
 import {
+  employeeCustomFieldDefinitionsApi,
   employeeGroupsApi,
   employeesApi,
   payPeriodConfigsApi,
   type CreateEmployeeBody,
+  type CustomFields,
   type Employee,
+  type Location,
   type UpdateEmployeeBody,
 } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
@@ -30,6 +35,8 @@ const employeeFormSchema = z.object({
   timezone: z.string().min(1),
   payPeriodConfigId: z.string().nullable().optional(),
   status: z.enum(["active", "inactive"]).optional(),
+  location: z.custom<Location | null>().optional(),
+  customFields: z.custom<CustomFields | null>().optional(),
 });
 
 type EmployeeFormValues = z.infer<typeof employeeFormSchema>;
@@ -52,6 +59,8 @@ export function EmployeeForm({ employee, onDone }: { employee?: Employee; onDone
       timezone: employee?.timezone ?? "",
       payPeriodConfigId: employee?.payPeriodConfigId ?? "",
       status: employee?.status ?? "active",
+      location: employee?.location ?? null,
+      customFields: employee?.customFields ?? null,
     },
   });
 
@@ -78,6 +87,8 @@ export function EmployeeForm({ employee, onDone }: { employee?: Employee; onDone
           timezone: values.timezone,
           payPeriodConfigId,
           status: values.status,
+          location: values.location ?? null,
+          customFields: values.customFields ?? null,
         };
         return employeesApi.update(employee._id, body);
       }
@@ -87,6 +98,8 @@ export function EmployeeForm({ employee, onDone }: { employee?: Employee; onDone
         employeeGroupId,
         timezone: values.timezone,
         payPeriodConfigId,
+        location: values.location ?? null,
+        customFields: values.customFields ?? null,
       };
       return employeesApi.create(body);
     },
@@ -206,6 +219,33 @@ export function EmployeeForm({ employee, onDone }: { employee?: Employee; onDone
           />
         </div>
       ) : null}
+
+      <div className="space-y-3 rounded-lg border bg-muted/30 p-3">
+        <p className="text-sm font-medium">{t("location.title")}</p>
+        <Controller
+          control={control}
+          name="location"
+          render={({ field }) => <LocationFields value={field.value ?? null} onChange={field.onChange} />}
+        />
+      </div>
+
+      <div className="space-y-3 rounded-lg border bg-muted/30 p-3">
+        <p className="text-sm font-medium">{t("customFields.title")}</p>
+        <Controller
+          control={control}
+          name="customFields"
+          render={({ field }) => (
+            <CustomFieldsSection
+              clientId={clientId}
+              value={field.value ?? null}
+              onChange={field.onChange}
+              queryKey={["employee-custom-fields", clientId]}
+              listDefinitions={employeeCustomFieldDefinitionsApi.list}
+              createDefinition={employeeCustomFieldDefinitionsApi.create}
+            />
+          )}
+        />
+      </div>
 
       <div className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
         <Button type="submit" disabled={mutation.isPending}>

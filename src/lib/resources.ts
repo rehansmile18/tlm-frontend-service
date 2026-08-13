@@ -112,6 +112,34 @@ export const clientsApi = {
   list: () => tlmFetch<{ items: ClientRecord[] }>("/clients"),
 };
 
+// ---- Geo (TLM; country/state picker backing the Location section on Employee/Site) ----
+export interface GeoCountry {
+  isoCode: string;
+  name: string;
+}
+
+export interface GeoState {
+  isoCode: string;
+  name: string;
+}
+
+export const geoApi = {
+  listCountries: () => tlmFetch<{ items: GeoCountry[] }>("/geo/countries"),
+  listStates: (countryCode: string) => tlmFetch<{ items: GeoState[] }>(`/geo/countries/${countryCode}/states`),
+};
+
+// ---- Location (tlm-backend; shared shape embedded on both Employee and Site) ----
+export interface Location {
+  addressLine1: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  state: string | null; // ISO-3166-2 subdivision code, e.g. "CA"
+  country: string | null; // ISO-3166-1 alpha-2 code, e.g. "US"
+  postalCode: string | null;
+}
+
+export type CustomFields = Record<string, string>;
+
 // ---- Employees (tlm-backend) ----
 export interface Employee {
   _id: string;
@@ -121,6 +149,8 @@ export interface Employee {
   timezone: string;
   payPeriodConfigId: string | null;
   status: "active" | "inactive";
+  location: Location | null;
+  customFields: CustomFields | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -151,6 +181,8 @@ export interface CreateEmployeeBody {
   timezone: string;
   payPeriodConfigId?: string | null;
   status?: "active" | "inactive";
+  location?: Location | null;
+  customFields?: CustomFields | null;
 }
 
 export type UpdateEmployeeBody = Partial<{
@@ -159,6 +191,8 @@ export type UpdateEmployeeBody = Partial<{
   timezone: string;
   payPeriodConfigId: string | null;
   status: "active" | "inactive";
+  location: Location | null;
+  customFields: CustomFields | null;
 }>;
 
 export interface AssignEmployeeSiteBody {
@@ -188,6 +222,25 @@ export const employeesApi = {
     backendFetch<EmployeeSiteAssignment>(`/employees/${employeeId}/sites/${siteId}`, { method: "PATCH", body }),
   unassignSite: (employeeId: string, siteId: string) =>
     backendFetch<void>(`/employees/${employeeId}/sites/${siteId}`, { method: "DELETE" }),
+};
+
+// ---- Employee custom field definitions (tlm-backend) ----
+// A per-client catalog of extra field names a CLIENT_ADMIN/PLATFORM_ADMIN wants to track on every
+// employee (e.g. "Badge Number") — each Employee's own `customFields` map then holds a value per
+// defined name. Mirrors Task's shape as a simple per-client catalog; no update/delete yet.
+export interface EmployeeCustomFieldDefinition {
+  _id: string;
+  clientId: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const employeeCustomFieldDefinitionsApi = {
+  list: (clientId: string) =>
+    backendFetch<{ items: EmployeeCustomFieldDefinition[] }>("/employee-custom-fields", { query: { clientId } }),
+  create: (clientId: string, name: string) =>
+    backendFetch<EmployeeCustomFieldDefinition>("/employee-custom-fields", { method: "POST", body: { clientId, name } }),
 };
 
 // ---- Employee Groups (tlm-backend) ----
@@ -233,6 +286,8 @@ export interface Site {
   siteId: string;
   name: string;
   timezone: string;
+  location: Location | null;
+  customFields: CustomFields | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -248,12 +303,16 @@ export interface CreateSiteBody {
   siteId: string;
   name: string;
   timezone: string;
+  location?: Location | null;
+  customFields?: CustomFields | null;
 }
 
 export type UpdateSiteBody = Partial<{
   siteId: string;
   name: string;
   timezone: string;
+  location: Location | null;
+  customFields: CustomFields | null;
 }>;
 
 export const sitesApi = {
@@ -261,6 +320,23 @@ export const sitesApi = {
   get: (id: string) => backendFetch<Site>(`/sites/${id}`),
   create: (body: CreateSiteBody) => backendFetch<Site>("/sites", { method: "POST", body }),
   update: (id: string, body: UpdateSiteBody) => backendFetch<Site>(`/sites/${id}`, { method: "PATCH", body }),
+};
+
+// ---- Site custom field definitions (tlm-backend) ----
+// Same per-client-catalog idea as EmployeeCustomFieldDefinition above, but for Sites.
+export interface SiteCustomFieldDefinition {
+  _id: string;
+  clientId: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const siteCustomFieldDefinitionsApi = {
+  list: (clientId: string) =>
+    backendFetch<{ items: SiteCustomFieldDefinition[] }>("/site-custom-fields", { query: { clientId } }),
+  create: (clientId: string, name: string) =>
+    backendFetch<SiteCustomFieldDefinition>("/site-custom-fields", { method: "POST", body: { clientId, name } }),
 };
 
 // ---- Tasks (tlm-backend) ----

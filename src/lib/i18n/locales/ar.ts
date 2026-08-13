@@ -448,6 +448,24 @@ const ar: TranslationKeys = {
     couldntSave: "تعذر حفظ أسماء الوحدات",
     couldntLoadClients: "تعذر تحميل العملاء",
   },
+  location: {
+    title: "الموقع",
+    addressLine1: "العنوان - السطر 1",
+    addressLine2: "العنوان - السطر 2",
+    city: "المدينة",
+    state: "الولاية / المقاطعة",
+    country: "الدولة",
+    postalCode: "الرمز البريدي",
+    selectCountryFirst: "اختر الدولة أولاً",
+  },
+  customFields: {
+    title: "الحقول المخصّصة",
+    none: "لا توجد حقول مخصّصة معرّفة بعد لهذا العميل.",
+    addFieldLabel: "اسم الحقل الجديد",
+    addFieldPlaceholder: "مثال: رقم الشارة",
+    addField: "إضافة حقل",
+    couldntAdd: "تعذرت إضافة الحقل المخصّص",
+  },
 };
 
 export default ar;

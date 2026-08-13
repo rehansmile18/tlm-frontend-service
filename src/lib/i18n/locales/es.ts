@@ -448,6 +448,24 @@ const es: TranslationKeys = {
     couldntSave: "No se pudieron guardar los nombres de módulos",
     couldntLoadClients: "No se pudieron cargar los clientes",
   },
+  location: {
+    title: "Ubicación",
+    addressLine1: "Dirección línea 1",
+    addressLine2: "Dirección línea 2",
+    city: "Ciudad",
+    state: "Estado / Provincia",
+    country: "País",
+    postalCode: "Código postal",
+    selectCountryFirst: "Selecciona primero un país",
+  },
+  customFields: {
+    title: "Campos personalizados",
+    none: "Aún no hay campos personalizados definidos para este cliente.",
+    addFieldLabel: "Nombre del nuevo campo",
+    addFieldPlaceholder: "p. ej. Número de credencial",
+    addField: "Agregar campo",
+    couldntAdd: "No se pudo agregar el campo personalizado",
+  },
 };
 
 export default es;

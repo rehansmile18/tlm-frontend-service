@@ -12,7 +12,17 @@ import { Label } from "@/components/ui/label";
 import { humanizeError } from "@/components/data-state";
 import { useEditableClientId } from "@/components/client-picker-field";
 import { TimezoneCombobox } from "@/components/timezone-combobox";
-import { sitesApi, type CreateSiteBody, type Site, type UpdateSiteBody } from "@/lib/resources";
+import { LocationFields } from "@/components/location-fields";
+import { CustomFieldsSection } from "@/components/custom-fields-section";
+import {
+  siteCustomFieldDefinitionsApi,
+  sitesApi,
+  type CreateSiteBody,
+  type CustomFields,
+  type Location,
+  type Site,
+  type UpdateSiteBody,
+} from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { useTranslation } from "@/lib/i18n/i18n";
 
@@ -20,6 +30,8 @@ const siteFormSchema = z.object({
   siteId: z.string().min(1),
   name: z.string().min(1),
   timezone: z.string().min(1),
+  location: z.custom<Location | null>().optional(),
+  customFields: z.custom<CustomFields | null>().optional(),
 });
 
 type SiteFormValues = z.infer<typeof siteFormSchema>;
@@ -41,16 +53,31 @@ export function SiteForm({ site, onDone }: { site?: Site; onDone: (saved: Site) 
       siteId: site?.siteId ?? "",
       name: site?.name ?? "",
       timezone: site?.timezone ?? "",
+      location: site?.location ?? null,
+      customFields: site?.customFields ?? null,
     },
   });
 
   const mutation = useMutation({
     mutationFn: (values: SiteFormValues) => {
       if (isEdit && site) {
-        const body: UpdateSiteBody = { siteId: values.siteId, name: values.name, timezone: values.timezone };
+        const body: UpdateSiteBody = {
+          siteId: values.siteId,
+          name: values.name,
+          timezone: values.timezone,
+          location: values.location ?? null,
+          customFields: values.customFields ?? null,
+        };
         return sitesApi.update(site._id, body);
       }
-      const body: CreateSiteBody = { clientId, siteId: values.siteId, name: values.name, timezone: values.timezone };
+      const body: CreateSiteBody = {
+        clientId,
+        siteId: values.siteId,
+        name: values.name,
+        timezone: values.timezone,
+        location: values.location ?? null,
+        customFields: values.customFields ?? null,
+      };
       return sitesApi.create(body);
     },
     onSuccess: (saved) => {
@@ -132,6 +159,33 @@ export function SiteForm({ site, onDone }: { site?: Site; onDone: (saved: Site) 
           )}
         />
         {errors.timezone ? <p className="text-xs text-destructive">{t("common.required")}</p> : null}
+      </div>
+
+      <div className="space-y-3 rounded-lg border bg-muted/30 p-3">
+        <p className="text-sm font-medium">{t("location.title")}</p>
+        <Controller
+          control={control}
+          name="location"
+          render={({ field }) => <LocationFields value={field.value ?? null} onChange={field.onChange} />}
+        />
+      </div>
+
+      <div className="space-y-3 rounded-lg border bg-muted/30 p-3">
+        <p className="text-sm font-medium">{t("customFields.title")}</p>
+        <Controller
+          control={control}
+          name="customFields"
+          render={({ field }) => (
+            <CustomFieldsSection
+              clientId={clientId}
+              value={field.value ?? null}
+              onChange={field.onChange}
+              queryKey={["site-custom-fields", clientId]}
+              listDefinitions={siteCustomFieldDefinitionsApi.list}
+              createDefinition={siteCustomFieldDefinitionsApi.create}
+            />
+          )}
+        />
       </div>
 
       <div className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">

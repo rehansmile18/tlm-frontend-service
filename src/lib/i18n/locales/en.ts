@@ -448,6 +448,24 @@ const en = {
     couldntSave: "Couldn't save module names",
     couldntLoadClients: "Couldn't load clients",
   },
+  location: {
+    title: "Location",
+    addressLine1: "Address line 1",
+    addressLine2: "Address line 2",
+    city: "City",
+    state: "State / Province",
+    country: "Country",
+    postalCode: "Postal code",
+    selectCountryFirst: "Select a country first",
+  },
+  customFields: {
+    title: "Custom fields",
+    none: "No custom fields defined yet for this client.",
+    addFieldLabel: "New field name",
+    addFieldPlaceholder: "e.g. Badge Number",
+    addField: "Add field",
+    couldntAdd: "Couldn't add custom field",
+  },
 };
 
 export default en;
