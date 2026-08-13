@@ -13,6 +13,29 @@ const SUPPORTED_TIMEZONES: string[] = (() => {
   return zones.includes("UTC") ? zones : ["UTC", ...zones];
 })();
 
+// The zone's CURRENT UTC offset (it moves with DST, same as any "what time is it there right
+// now" reference) — shown next to each option since "America/Indiana/Knox" alone tells a picker
+// nothing about how far off local time actually is.
+function formatOffset(zone: string): string {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", { timeZone: zone, timeZoneName: "longOffset" }).formatToParts(
+      new Date()
+    );
+    const raw = parts.find((p) => p.type === "timeZoneName")?.value ?? "";
+    return raw && raw !== "GMT" ? raw.replace("GMT", "UTC") : "UTC+00:00";
+  } catch {
+    return "";
+  }
+}
+
+const TIMEZONE_OFFSETS: Record<string, string> = Object.fromEntries(
+  SUPPORTED_TIMEZONES.map((zone) => [zone, formatOffset(zone)])
+);
+
+function offsetLabelFor(zone: string): string {
+  return TIMEZONE_OFFSETS[zone] ?? formatOffset(zone);
+}
+
 export function TimezoneCombobox({
   value,
   onValueChange,
@@ -61,7 +84,7 @@ export function TimezoneCombobox({
 
       <Combobox.Portal>
         <Combobox.Positioner sideOffset={4} className="isolate z-50 outline-none">
-          <Combobox.Popup className="max-h-72 w-(--anchor-width) min-w-(--anchor-width) overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none">
+          <Combobox.Popup className="max-h-72 w-max min-w-(--anchor-width) max-w-[26rem] overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none">
             <Combobox.Empty className="px-2 py-4 text-center text-sm text-muted-foreground">
               {t("common.noMatches")}
             </Combobox.Empty>
@@ -70,9 +93,10 @@ export function TimezoneCombobox({
                 <Combobox.Item
                   key={item}
                   value={item}
-                  className="relative flex cursor-default items-center justify-between gap-1.5 rounded-md px-2 py-1.5 text-sm outline-none select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground"
+                  className="relative flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground"
                 >
-                  <span className="truncate">{item}</span>
+                  <span className="min-w-0 flex-1 truncate">{item}</span>
+                  <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{offsetLabelFor(item)}</span>
                   <Combobox.ItemIndicator>
                     <CheckIcon className="size-3.5 shrink-0 text-primary" />
                   </Combobox.ItemIndicator>
