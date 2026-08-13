@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { humanizeError } from "@/components/data-state";
 import { useEditableClientId } from "@/components/client-picker-field";
+import { TimezoneCombobox } from "@/components/timezone-combobox";
 import { sitesApi, type CreateSiteBody, type Site, type UpdateSiteBody } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { useTranslation } from "@/lib/i18n/i18n";
@@ -121,17 +122,15 @@ export function SiteForm({ site, onDone }: { site?: Site; onDone: (saved: Site) 
           control={control}
           name="timezone"
           render={({ field }) => (
-            <Input
+            <TimezoneCombobox
               id="timezone"
               value={field.value}
-              onChange={field.onChange}
-              onBlur={field.onBlur}
+              onValueChange={field.onChange}
               placeholder="America/Los_Angeles"
               aria-invalid={Boolean(errors.timezone)}
             />
           )}
         />
-        <p className="text-xs text-muted-foreground">{t("sites.timezoneHint")}</p>
         {errors.timezone ? <p className="text-xs text-destructive">{t("common.required")}</p> : null}
       </div>
 

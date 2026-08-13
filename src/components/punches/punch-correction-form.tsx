@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Combobox, ComboboxItem } from "@/components/ui/combobox";
 import { humanizeError } from "@/components/data-state";
+import { TimezoneCombobox } from "@/components/timezone-combobox";
 import { sitesApi, tasksApi, punchesApi, type CorrectPunchBody, type Punch } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { useTranslation } from "@/lib/i18n/i18n";
@@ -194,11 +195,10 @@ export function PunchCorrectionForm({ punch, onDone }: { punch: Punch; onDone: (
           control={control}
           name="timezone"
           render={({ field }) => (
-            <Input
+            <TimezoneCombobox
               id="timezone"
               value={field.value}
-              onChange={field.onChange}
-              onBlur={field.onBlur}
+              onValueChange={field.onChange}
               placeholder="America/New_York"
               aria-invalid={Boolean(errors.timezone)}
             />

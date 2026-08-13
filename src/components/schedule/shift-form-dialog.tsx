@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Combobox, ComboboxItem } from "@/components/ui/combobox";
 import { humanizeError } from "@/components/data-state";
 import { useEditableClientId } from "@/components/client-picker-field";
+import { TimezoneCombobox } from "@/components/timezone-combobox";
 import { employeesApi, sitesApi, schedulesApi, type ScheduledShift } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { useRole } from "@/lib/auth";
@@ -321,11 +322,10 @@ function ShiftForm({
           control={control}
           name="timezone"
           render={({ field }) => (
-            <Input
+            <TimezoneCombobox
               id="timezone"
               value={field.value}
-              onChange={field.onChange}
-              onBlur={field.onBlur}
+              onValueChange={field.onChange}
               placeholder="America/New_York"
               aria-invalid={Boolean(errors.timezone)}
             />

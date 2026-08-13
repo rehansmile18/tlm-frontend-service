@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Combobox, ComboboxItem } from "@/components/ui/combobox";
 import { humanizeError } from "@/components/data-state";
 import { useEditableClientId } from "@/components/client-picker-field";
+import { TimezoneCombobox } from "@/components/timezone-combobox";
 import {
   employeeGroupsApi,
   employeesApi,
@@ -140,17 +141,15 @@ export function EmployeeForm({ employee, onDone }: { employee?: Employee; onDone
           control={control}
           name="timezone"
           render={({ field }) => (
-            <Input
+            <TimezoneCombobox
               id="timezone"
               value={field.value}
-              onChange={field.onChange}
-              onBlur={field.onBlur}
+              onValueChange={field.onChange}
               placeholder="America/New_York"
               aria-invalid={Boolean(errors.timezone)}
             />
           )}
         />
-        <p className="text-xs text-muted-foreground">{t("employees.timezoneHint")}</p>
         {errors.timezone ? <p className="text-xs text-destructive">{t("common.required")}</p> : null}
       </div>
 
