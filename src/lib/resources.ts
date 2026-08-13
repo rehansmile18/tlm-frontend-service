@@ -130,6 +130,7 @@ export interface EmployeeSiteAssignment {
   clientId: string;
   employeeId: string;
   siteId: string;
+  task: string | null;
   isPrimary: boolean;
   status: "active" | "inactive";
   createdAt: string;
@@ -162,9 +163,16 @@ export type UpdateEmployeeBody = Partial<{
 
 export interface AssignEmployeeSiteBody {
   siteId: string;
+  task: string;
   isPrimary?: boolean;
   status?: "active" | "inactive";
 }
+
+export type UpdateEmployeeSiteAssignmentBody = Partial<{
+  task: string;
+  isPrimary: boolean;
+  status: "active" | "inactive";
+}>;
 
 export const employeesApi = {
   list: (params: EmployeeListParams = {}) => backendFetch<Paginated<Employee>>("/employees", { query: { ...params } }),
@@ -176,6 +184,8 @@ export const employeesApi = {
     backendFetch<{ items: EmployeeSiteAssignment[] }>(`/employees/${employeeId}/sites`),
   assignSite: (employeeId: string, body: AssignEmployeeSiteBody) =>
     backendFetch<EmployeeSiteAssignment>(`/employees/${employeeId}/sites`, { method: "POST", body }),
+  updateSiteAssignment: (employeeId: string, siteId: string, body: UpdateEmployeeSiteAssignmentBody) =>
+    backendFetch<EmployeeSiteAssignment>(`/employees/${employeeId}/sites/${siteId}`, { method: "PATCH", body }),
   unassignSite: (employeeId: string, siteId: string) =>
     backendFetch<void>(`/employees/${employeeId}/sites/${siteId}`, { method: "DELETE" }),
 };

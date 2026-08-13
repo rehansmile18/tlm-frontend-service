@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2Icon, PlusIcon } from "lucide-react";
+import { Loader2Icon, PencilIcon, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -23,13 +23,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/status-badge";
 import { EmptyState, ErrorState, humanizeError } from "@/components/data-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { employeesApi, sitesApi, type AssignEmployeeSiteBody } from "@/lib/resources";
+import {
+  employeesApi,
+  sitesApi,
+  tasksApi,
+  type AssignEmployeeSiteBody,
+  type EmployeeSiteAssignment,
+  type UpdateEmployeeSiteAssignmentBody,
+} from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
 
 const assignSiteSchema = z.object({
   siteId: z.string().min(1),
+  task: z.string().min(1),
   isPrimary: z.boolean().optional(),
 });
 
@@ -57,25 +65,32 @@ function AssignSiteDialog({
     enabled: open && Boolean(clientId),
   });
 
+  const tasksQuery = useQuery({
+    queryKey: queryKeys.tasks({ clientId, pageSize: 200 }),
+    queryFn: () => tasksApi.list({ clientId, pageSize: 200 }),
+    enabled: open && Boolean(clientId),
+  });
+
   const availableSites = useMemo(
     () => (sitesQuery.data?.items ?? []).filter((site) => !assignedSiteIds.has(site.siteId)),
     [sitesQuery.data, assignedSiteIds]
   );
+  const tasks = tasksQuery.data?.items ?? [];
 
   const { control, handleSubmit, reset } = useForm<AssignSiteFormValues>({
     resolver: zodResolver(assignSiteSchema),
-    defaultValues: { siteId: "", isPrimary: false },
+    defaultValues: { siteId: "", task: "", isPrimary: false },
   });
 
   const mutation = useMutation({
     mutationFn: (values: AssignSiteFormValues) => {
-      const body: AssignEmployeeSiteBody = { siteId: values.siteId, isPrimary: values.isPrimary };
+      const body: AssignEmployeeSiteBody = { siteId: values.siteId, task: values.task, isPrimary: values.isPrimary };
       return employeesApi.assignSite(employeeId, body);
     },
     onSuccess: () => {
       toast.success(t("employees.sites.assigned"));
       queryClient.invalidateQueries({ queryKey: queryKeys.employeeSites(employeeId) });
-      reset({ siteId: "", isPrimary: false });
+      reset({ siteId: "", task: "", isPrimary: false });
       onOpenChange(false);
     },
     onError: (error) => toast.error(t("employees.sites.couldntAssign"), { description: humanizeError(error) }),
@@ -112,6 +127,23 @@ function AssignSiteDialog({
               />
             </div>
 
+            <div className="space-y-1.5">
+              <Label htmlFor="siteTask">{t("employees.sites.task")}</Label>
+              <Controller
+                control={control}
+                name="task"
+                render={({ field }) => (
+                  <Combobox id="siteTask" value={field.value} onValueChange={field.onChange} placeholder={t("common.select")}>
+                    {tasks.map((task) => (
+                      <ComboboxItem key={task._id} value={task.name}>
+                        {task.name}
+                      </ComboboxItem>
+                    ))}
+                  </Combobox>
+                )}
+              />
+            </div>
+
             <Controller
               control={control}
               name="isPrimary"
@@ -141,12 +173,99 @@ function AssignSiteDialog({
   );
 }
 
+const editAssignmentSchema = z.object({
+  task: z.string().min(1),
+});
+
+type EditAssignmentFormValues = z.infer<typeof editAssignmentSchema>;
+
+function EditAssignmentDialog({
+  open,
+  onOpenChange,
+  employeeId,
+  clientId,
+  assignment,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  employeeId: string;
+  clientId: string;
+  assignment: EmployeeSiteAssignment;
+}) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
+  const tasksQuery = useQuery({
+    queryKey: queryKeys.tasks({ clientId, pageSize: 200 }),
+    queryFn: () => tasksApi.list({ clientId, pageSize: 200 }),
+    enabled: open && Boolean(clientId),
+  });
+  const tasks = tasksQuery.data?.items ?? [];
+
+  const { control, handleSubmit } = useForm<EditAssignmentFormValues>({
+    resolver: zodResolver(editAssignmentSchema),
+    defaultValues: { task: assignment.task ?? "" },
+  });
+
+  const mutation = useMutation({
+    mutationFn: (values: EditAssignmentFormValues) => {
+      const body: UpdateEmployeeSiteAssignmentBody = { task: values.task };
+      return employeesApi.updateSiteAssignment(employeeId, assignment.siteId, body);
+    },
+    onSuccess: () => {
+      toast.success(t("employees.sites.updated"));
+      queryClient.invalidateQueries({ queryKey: queryKeys.employeeSites(employeeId) });
+      onOpenChange(false);
+    },
+    onError: (error) => toast.error(t("employees.sites.couldntUpdate"), { description: humanizeError(error) }),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("employees.sites.editAssignment")}</DialogTitle>
+          <DialogDescription>{t("employees.sites.editAssignmentDescription")}</DialogDescription>
+        </DialogHeader>
+        {open ? (
+          <form onSubmit={handleSubmit((values) => mutation.mutate(values))} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="editTask">{t("employees.sites.task")}</Label>
+              <Controller
+                control={control}
+                name="task"
+                render={({ field }) => (
+                  <Combobox id="editTask" value={field.value} onValueChange={field.onChange} placeholder={t("common.select")}>
+                    {tasks.map((task) => (
+                      <ComboboxItem key={task._id} value={task.name}>
+                        {task.name}
+                      </ComboboxItem>
+                    ))}
+                  </Combobox>
+                )}
+              />
+            </div>
+
+            <DialogFooter>
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? <Loader2Icon className="size-4 animate-spin" /> : null}
+                {t("common.saveChanges")}
+              </Button>
+            </DialogFooter>
+          </form>
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function EmployeeSitesPanel({ employeeId, clientId }: { employeeId: string; clientId: string }) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const canWrite = hasPermission(user, "employeeSiteAssignment:write");
   const queryClient = useQueryClient();
   const [assignOpen, setAssignOpen] = useState(false);
+  const [editingAssignment, setEditingAssignment] = useState<EmployeeSiteAssignment | null>(null);
 
   const assignmentsQuery = useQuery({
     queryKey: queryKeys.employeeSites(employeeId),
@@ -207,6 +326,7 @@ export function EmployeeSitesPanel({ employeeId, clientId }: { employeeId: strin
             <TableHeader>
               <TableRow>
                 <TableHead>{t("employees.sites.site")}</TableHead>
+                <TableHead>{t("employees.sites.task")}</TableHead>
                 <TableHead>{t("common.status")}</TableHead>
                 {canWrite ? <TableHead className="text-end">{t("common.actions")}</TableHead> : null}
               </TableRow>
@@ -222,6 +342,7 @@ export function EmployeeSitesPanel({ employeeId, clientId }: { employeeId: strin
                       ) : null}
                     </div>
                   </TableCell>
+                  <TableCell className="text-muted-foreground">{assignment.task ?? "—"}</TableCell>
                   <TableCell>
                     <StatusBadge tone={assignment.status === "active" ? "success" : "muted"}>
                       {assignment.status === "active" ? t("employees.active") : t("employees.inactive")}
@@ -229,14 +350,20 @@ export function EmployeeSitesPanel({ employeeId, clientId }: { employeeId: strin
                   </TableCell>
                   {canWrite ? (
                     <TableCell className="text-end">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={unassignMutation.isPending}
-                        onClick={() => unassignMutation.mutate(assignment.siteId)}
-                      >
-                        {t("employees.sites.unassign")}
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => setEditingAssignment(assignment)}>
+                          <PencilIcon className="size-3.5" />
+                          {t("employees.sites.edit")}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={unassignMutation.isPending}
+                          onClick={() => unassignMutation.mutate(assignment.siteId)}
+                        >
+                          {t("employees.sites.unassign")}
+                        </Button>
+                      </div>
                     </TableCell>
                   ) : null}
                 </TableRow>
@@ -253,6 +380,16 @@ export function EmployeeSitesPanel({ employeeId, clientId }: { employeeId: strin
           employeeId={employeeId}
           clientId={clientId}
           assignedSiteIds={assignedSiteIds}
+        />
+      ) : null}
+
+      {canWrite && editingAssignment ? (
+        <EditAssignmentDialog
+          open={Boolean(editingAssignment)}
+          onOpenChange={(open) => !open && setEditingAssignment(null)}
+          employeeId={employeeId}
+          clientId={clientId}
+          assignment={editingAssignment}
         />
       ) : null}
     </Card>
