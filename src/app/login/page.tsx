@@ -9,13 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
+import { LanguageSwitcher } from "@/components/app-shell/language-switcher";
 
 export default function LoginPage() {
   const { login, isAuthenticated, isReady } = useAuth();
   const { t } = useTranslation();
   const router = useRouter();
 
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +31,7 @@ export default function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
-      await login(email.trim(), password);
+      await login(identifier.trim(), password);
       router.replace("/dashboard");
     } catch {
       setError(t("auth.invalidCredentials"));
@@ -40,7 +41,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-muted/40 p-4">
+    <div className="relative flex min-h-dvh items-center justify-center bg-muted/40 p-4">
+      <div className="absolute end-4 top-4">
+        <LanguageSwitcher />
+      </div>
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
           <h1 className="text-lg font-semibold">{t("auth.signIn")}</h1>
@@ -55,13 +59,14 @@ export default function LoginPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">{t("auth.email")}</Label>
+                <Label htmlFor="identifier">{t("auth.identifier")}</Label>
                 <Input
-                  id="email"
-                  type="email"
+                  id="identifier"
+                  type="text"
                   autoComplete="username"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t("auth.identifierPlaceholder")}
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   required
                 />
               </div>

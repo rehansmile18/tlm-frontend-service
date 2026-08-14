@@ -1,4 +1,5 @@
 import { backendFetch, tlmFetch } from "./api";
+import type { Locale } from "./i18n/i18n";
 
 // Mirrors the two backends' domain models and API response shapes, grouped by domain. TLM
 // (`~/Git/TLM`) is the single auth authority (login, User CRUD); tlm-backend (`~/Git/tlm-backend`)
@@ -18,8 +19,15 @@ export interface LoginResult {
   user: {
     userId: string;
     email: string;
+    username: string | null;
     role: string;
     clientId: string | null;
+    firstName: string | null;
+    lastName: string | null;
+    mobile: string | null;
+    preferredLanguage: Locale | null;
+    preferredDateFormat: CalendarFormat | null;
+    preferredTimeFormat: TimeFormat | null;
   };
 }
 
@@ -39,24 +47,45 @@ export type TimeFormat = (typeof TIME_FORMATS)[number];
 export interface MeResult {
   userId: string;
   email: string;
+  username: string | null;
   role: string;
   clientId: string | null;
   siteIds: string[];
   permissions: string[];
   status: string;
+  createdAt: string;
+  firstName: string | null;
+  lastName: string | null;
+  mobile: string | null;
+  preferredLanguage: Locale | null;
   preferredDateFormat: CalendarFormat | null;
   preferredTimeFormat: TimeFormat | null;
+  avatarUrl: string | null;
+}
+
+export interface UpdateProfileBody {
+  firstName?: string | null;
+  lastName?: string | null;
+  username?: string | null;
+  mobile?: string | null;
+  preferredLanguage?: Locale | null;
+  preferredDateFormat?: CalendarFormat | null;
+  preferredTimeFormat?: TimeFormat | null;
 }
 
 export const authApi = {
-  login: (email: string, password: string) =>
-    tlmFetch<LoginResult>("/auth/login", { method: "POST", body: { email, password } }),
+  // The identifier field is still named `email` on the wire for backward compatibility, but TLM
+  // now accepts the caller's email, username, or mobile number interchangeably here.
+  login: (identifier: string, password: string) =>
+    tlmFetch<LoginResult>("/auth/login", { method: "POST", body: { email: identifier, password } }),
   me: () => tlmFetch<MeResult>("/users/me"),
-  // Self-service — every authenticated role may update their own preferences (see TLM's
-  // PATCH /users/me). Only preferredDateFormat/preferredTimeFormat are wired up on this side;
-  // other fields updateProfileSchema accepts (preferredLanguage) aren't sent from here.
-  updateMe: (body: { preferredDateFormat?: CalendarFormat | null; preferredTimeFormat?: TimeFormat | null }) =>
-    tlmFetch<MeResult>("/users/me", { method: "PATCH", body }),
+  // Self-service — every authenticated role may update their own profile/preferences via TLM's
+  // PATCH /users/me.
+  updateMe: (body: UpdateProfileBody) => tlmFetch<MeResult>("/users/me", { method: "PATCH", body }),
+  changePassword: (body: { currentPassword: string; newPassword: string }) =>
+    tlmFetch<void>("/users/me/change-password", { method: "POST", body }),
+  updateAvatar: (avatarUrl: string | null) =>
+    tlmFetch<MeResult>("/users/me/avatar", { method: "PATCH", body: { avatarUrl } }),
 };
 
 // ---- Users (TLM; for the future Team/Permissions management page) ----
