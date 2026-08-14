@@ -81,6 +81,22 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* Toast accent colors (see components/ui/sonner.tsx) — same hues as StatusBadge's tone system
+     (lib/format.ts's TONE_CLASSES) so a "saved" toast and a "success" badge read as the same color
+     language throughout the app. Deliberately prefixed: sonner defines its own --success-bg et al,
+     and mapping one onto a same-named token would be self-referential and resolve to nothing. */
+  --toast-success-bg: #d1fae5;
+  --toast-success-text: #065f46;
+  --toast-success-border: #6ee7b7;
+  --toast-warning-bg: #fef3c7;
+  --toast-warning-text: #78350f;
+  --toast-warning-border: #fcd34d;
+  --toast-info-bg: #dbeafe;
+  --toast-info-text: #1e40af;
+  --toast-info-border: #93c5fd;
+  --toast-error-bg: #fee2e2;
+  --toast-error-text: #991b1b;
+  --toast-error-border: #fca5a5;
 }
 
 .dark {
@@ -115,6 +131,18 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --toast-success-bg: #022c22;
+  --toast-success-text: #6ee7b7;
+  --toast-success-border: #065f46;
+  --toast-warning-bg: #451a03;
+  --toast-warning-text: #fcd34d;
+  --toast-warning-border: #78350f;
+  --toast-info-bg: #172554;
+  --toast-info-text: #93c5fd;
+  --toast-info-border: #1e40af;
+  --toast-error-bg: #450a0a;
+  --toast-error-text: #fca5a5;
+  --toast-error-border: #991b1b;
 }
 
 /* Geist has no Arabic glyphs — swap the sans stack to Noto Kufi Arabic when dir="rtl" (Arabic is

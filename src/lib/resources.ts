@@ -82,8 +82,10 @@ export const authApi = {
   // Self-service — every authenticated role may update their own profile/preferences via TLM's
   // PATCH /users/me.
   updateMe: (body: UpdateProfileBody) => tlmFetch<MeResult>("/users/me", { method: "PATCH", body }),
+  // expects401: a wrong CURRENT password comes back as 401, which has nothing to do with the
+  // bearer token — without this the caller would be signed out for a typo.
   changePassword: (body: { currentPassword: string; newPassword: string }) =>
-    tlmFetch<void>("/users/me/change-password", { method: "POST", body }),
+    tlmFetch<void>("/users/me/change-password", { method: "POST", body, expects401: true }),
   updateAvatar: (avatarUrl: string | null) =>
     tlmFetch<MeResult>("/users/me/avatar", { method: "PATCH", body: { avatarUrl } }),
 };
