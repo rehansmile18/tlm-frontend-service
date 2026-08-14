@@ -58,7 +58,7 @@ export default function TimesheetSiteGridPage() {
         </div>
       ) : (
         <>
-          <PageHeader title={siteName} description={`${formatDate(grid.periodStart)} – ${formatDate(grid.periodEnd)}`} />
+          <PageHeader title={siteName} description={`${formatDate(grid.periodStartDate)} – ${formatDate(grid.periodEndDate)}`} />
 
           <Card>
             <CardHeader>

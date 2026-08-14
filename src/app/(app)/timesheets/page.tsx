@@ -153,7 +153,7 @@ export default function TimesheetsPage() {
                   >
                     <TableCell className="font-medium">{siteNameBySiteId.get(group.siteId) ?? group.siteId}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {formatDate(group.periodStart)} – {formatDate(group.periodEnd)}
+                      {formatDate(group.periodStartDate)} – {formatDate(group.periodEndDate)}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{formatDate(group.payDate)}</TableCell>
                     <TableCell className="text-muted-foreground">{group.employeeCount}</TableCell>

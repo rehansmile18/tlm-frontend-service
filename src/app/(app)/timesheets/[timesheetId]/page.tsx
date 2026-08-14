@@ -110,7 +110,7 @@ export default function TimesheetDetailPage() {
         <>
           <PageHeader
             title={timesheet.employeeId}
-            description={`${formatDate(timesheet.periodStart)} – ${formatDate(timesheet.periodEnd)}`}
+            description={`${formatDate(timesheet.periodStartDate)} – ${formatDate(timesheet.periodEndDate)}`}
             actions={
               <div className="flex items-center gap-2">
                 <StatusBadge tone={STATUS_TONE[timesheet.status]}>
@@ -137,11 +137,11 @@ export default function TimesheetDetailPage() {
                 </div>
                 <div>
                   <dt className="text-sm text-muted-foreground">{t("timesheets.periodStart")}</dt>
-                  <dd className="text-sm font-medium">{formatDate(timesheet.periodStart)}</dd>
+                  <dd className="text-sm font-medium">{formatDate(timesheet.periodStartDate)}</dd>
                 </div>
                 <div>
                   <dt className="text-sm text-muted-foreground">{t("timesheets.periodEnd")}</dt>
-                  <dd className="text-sm font-medium">{formatDate(timesheet.periodEnd)}</dd>
+                  <dd className="text-sm font-medium">{formatDate(timesheet.periodEndDate)}</dd>
                 </div>
                 <div>
                   <dt className="text-sm text-muted-foreground">{t("timesheets.payDate")}</dt>

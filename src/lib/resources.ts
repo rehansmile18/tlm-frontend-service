@@ -635,6 +635,11 @@ export interface Timesheet {
   payPeriodId: string;
   periodStart: string;
   periodEnd: string;
+  // The period's own calendar-date boundaries ("yyyy-MM-dd"), computed server-side in the pay
+  // period config's own timezone — display these, not periodStart/periodEnd, which are exact UTC
+  // instants that can read as the wrong calendar day once formatted in the viewer's own timezone.
+  periodStartDate: string;
+  periodEndDate: string;
   version: number;
   status: "draft" | "completed" | "superseded" | "voided" | "failed";
   runId: string;
@@ -663,6 +668,9 @@ export interface TimesheetSiteGroup {
   payPeriodId: string;
   periodStart: string;
   periodEnd: string;
+  // See Timesheet.periodStartDate/periodEndDate — always prefer these for display.
+  periodStartDate: string;
+  periodEndDate: string;
   payDate: string;
   employeeCount: number;
   totalHours: number;
@@ -703,6 +711,9 @@ export interface TimesheetGrid {
   payPeriodId: string;
   periodStart: string;
   periodEnd: string;
+  // See Timesheet.periodStartDate/periodEndDate — always prefer these for display.
+  periodStartDate: string;
+  periodEndDate: string;
   payDate: string;
   dates: string[];
   rows: TimesheetGridRow[];
