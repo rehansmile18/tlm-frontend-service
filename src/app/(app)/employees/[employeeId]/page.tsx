@@ -14,6 +14,7 @@ import { EmployeeSitesPanel } from "@/components/employees/employee-sites-panel"
 import { employeeGroupsApi, employeesApi, payPeriodConfigsApi } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
+import { useLocationSummary } from "@/lib/hooks";
 import { useTranslation } from "@/lib/i18n/i18n";
 import { formatDateTime } from "@/lib/format";
 
@@ -47,6 +48,9 @@ export default function EmployeeDetailPage() {
     queryFn: () => payPeriodConfigsApi.get(employee!.payPeriodConfigId!),
     enabled: Boolean(employee?.payPeriodConfigId),
   });
+
+  const { countryName, stateName, hasAnyLocationData } = useLocationSummary(employee?.location);
+  const customFieldEntries = Object.entries(employee?.customFields ?? {});
 
   return (
     <>
@@ -112,6 +116,72 @@ export default function EmployeeDetailPage() {
               </dl>
             </CardContent>
           </Card>
+
+          {hasAnyLocationData ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("location.title")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="grid gap-4 sm:grid-cols-2">
+                  {employee.location?.addressLine1 ? (
+                    <div>
+                      <dt className="text-sm text-muted-foreground">{t("location.addressLine1")}</dt>
+                      <dd className="text-sm font-medium">{employee.location.addressLine1}</dd>
+                    </div>
+                  ) : null}
+                  {employee.location?.addressLine2 ? (
+                    <div>
+                      <dt className="text-sm text-muted-foreground">{t("location.addressLine2")}</dt>
+                      <dd className="text-sm font-medium">{employee.location.addressLine2}</dd>
+                    </div>
+                  ) : null}
+                  {employee.location?.city ? (
+                    <div>
+                      <dt className="text-sm text-muted-foreground">{t("location.city")}</dt>
+                      <dd className="text-sm font-medium">{employee.location.city}</dd>
+                    </div>
+                  ) : null}
+                  {stateName ? (
+                    <div>
+                      <dt className="text-sm text-muted-foreground">{t("location.state")}</dt>
+                      <dd className="text-sm font-medium">{stateName}</dd>
+                    </div>
+                  ) : null}
+                  {countryName ? (
+                    <div>
+                      <dt className="text-sm text-muted-foreground">{t("location.country")}</dt>
+                      <dd className="text-sm font-medium">{countryName}</dd>
+                    </div>
+                  ) : null}
+                  {employee.location?.postalCode ? (
+                    <div>
+                      <dt className="text-sm text-muted-foreground">{t("location.postalCode")}</dt>
+                      <dd className="text-sm font-medium">{employee.location.postalCode}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {customFieldEntries.length > 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("customFields.title")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="grid gap-4 sm:grid-cols-2">
+                  {customFieldEntries.map(([name, fieldValue]) => (
+                    <div key={name}>
+                      <dt className="text-sm text-muted-foreground">{name}</dt>
+                      <dd className="text-sm font-medium">{fieldValue || "—"}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </CardContent>
+            </Card>
+          ) : null}
 
           <EmployeeSitesPanel employeeId={employee._id} clientId={employee.clientId} />
         </>

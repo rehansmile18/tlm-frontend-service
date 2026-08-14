@@ -12,6 +12,7 @@ import { ErrorState } from "@/components/data-state";
 import { sitesApi } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
+import { useLocationSummary } from "@/lib/hooks";
 import { useTranslation } from "@/lib/i18n/i18n";
 import { formatDate } from "@/lib/format";
 
@@ -31,6 +32,7 @@ export default function SiteDetailPage() {
   const canWrite = hasPermission(user, "site:write");
 
   const siteQuery = useQuery({ queryKey: queryKeys.site(siteId), queryFn: () => sitesApi.get(siteId) });
+  const { countryName, stateName, hasAnyLocationData } = useLocationSummary(siteQuery.data?.location);
 
   if (siteQuery.isError) return <ErrorState error={siteQuery.error} onRetry={() => siteQuery.refetch()} />;
   if (siteQuery.isLoading || !siteQuery.data) {
@@ -78,6 +80,47 @@ export default function SiteDetailPage() {
           </dl>
         </CardContent>
       </Card>
+
+      {hasAnyLocationData ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t("location.title")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+              {site.location?.addressLine1 ? (
+                <DetailRow label={t("location.addressLine1")}>{site.location.addressLine1}</DetailRow>
+              ) : null}
+              {site.location?.addressLine2 ? (
+                <DetailRow label={t("location.addressLine2")}>{site.location.addressLine2}</DetailRow>
+              ) : null}
+              {site.location?.city ? <DetailRow label={t("location.city")}>{site.location.city}</DetailRow> : null}
+              {stateName ? <DetailRow label={t("location.state")}>{stateName}</DetailRow> : null}
+              {countryName ? <DetailRow label={t("location.country")}>{countryName}</DetailRow> : null}
+              {site.location?.postalCode ? (
+                <DetailRow label={t("location.postalCode")}>{site.location.postalCode}</DetailRow>
+              ) : null}
+            </dl>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {Object.keys(site.customFields ?? {}).length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t("customFields.title")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+              {Object.entries(site.customFields ?? {}).map(([name, fieldValue]) => (
+                <DetailRow key={name} label={name}>
+                  {fieldValue || "—"}
+                </DetailRow>
+              ))}
+            </dl>
+          </CardContent>
+        </Card>
+      ) : null}
     </>
   );
 }
