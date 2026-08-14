@@ -364,8 +364,9 @@ const ar: TranslationKeys = {
   timesheets: {
     moduleName: "كشف دوام",
     title: "كشوف الدوام",
-    description: "مراجعة كشوف الدوام المحسوبة لكل فترة دفع وسجل التدقيق الخاص بها.",
+    description: "مراجعة كشوف الدوام المحسوبة، مجمّعة حسب الموقع وفترة الدفع.",
     employee: "الموظف",
+    employees: "الموظفون",
     payPeriod: "فترة الدفع",
     periodStart: "بداية الفترة",
     periodEnd: "نهاية الفترة",

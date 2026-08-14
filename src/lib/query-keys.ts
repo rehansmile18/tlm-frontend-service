@@ -46,6 +46,8 @@ export const queryKeys = {
   timesheets: (params?: unknown) => ["timesheets", params ?? {}] as const,
   timesheet: (id: string) => ["timesheet", id] as const,
   timesheetAuditTrail: (id: string) => ["timesheet-audit-trail", id] as const,
+  timesheetSiteGroups: (params?: unknown) => ["timesheet-site-groups", params ?? {}] as const,
+  timesheetGrid: (siteId: string, payPeriodId: string) => ["timesheet-grid", siteId, payPeriodId] as const,
 
   // Permissions catalog
   permissionsCatalog: ["permissions-catalog"] as const,

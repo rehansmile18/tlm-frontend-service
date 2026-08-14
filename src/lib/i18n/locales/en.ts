@@ -364,8 +364,9 @@ const en = {
   timesheets: {
     moduleName: "Timesheet",
     title: "Timesheets",
-    description: "Review calculated pay period timesheets and their audit history.",
+    description: "Review calculated timesheets grouped by site and pay period.",
     employee: "Employee",
+    employees: "Employees",
     payPeriod: "Pay period",
     periodStart: "Period start",
     periodEnd: "Period end",

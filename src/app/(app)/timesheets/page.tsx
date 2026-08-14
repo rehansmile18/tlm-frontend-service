@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { PlayIcon, TriangleAlertIcon } from "lucide-react";
@@ -10,26 +10,15 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Combobox, ComboboxItem } from "@/components/ui/combobox";
-import { StatusBadge } from "@/components/status-badge";
 import { EmptyState, ErrorState } from "@/components/data-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { employeesApi, timesheetsApi, type Timesheet, type TimesheetListParams } from "@/lib/resources";
+import { sitesApi, timesheetsApi, type TimesheetSiteGroupListParams } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
-import { formatDate, type BadgeTone } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 
 const PAGE_SIZE = 25;
-
-const STATUS_TONE: Record<Timesheet["status"], BadgeTone> = {
-  draft: "neutral",
-  completed: "success",
-  superseded: "muted",
-  voided: "danger",
-  failed: "danger",
-};
-
-const STATUSES: Timesheet["status"][] = ["draft", "completed", "superseded", "voided", "failed"];
 
 export default function TimesheetsPage() {
   const router = useRouter();
@@ -38,35 +27,38 @@ export default function TimesheetsPage() {
   const canTriggerProcessing = hasPermission(user, "processing:trigger");
   const clientId = user?.clientId ?? "";
 
-  const [employeeId, setEmployeeId] = useState("");
-  const [status, setStatus] = useState("");
+  const [siteId, setSiteId] = useState("");
   const [includeSuperseded, setIncludeSuperseded] = useState(false);
   const [page, setPage] = useState(1);
 
   // TODO: PLATFORM_ADMIN has no clientId of their own — this scopes the list to "no client"
   // (i.e. backend's own default) until a client picker exists for that role.
-  const params: TimesheetListParams = {
+  const params: TimesheetSiteGroupListParams = {
     clientId: clientId || undefined,
-    employeeId: employeeId || undefined,
-    status: status || undefined,
+    siteId: siteId || undefined,
     includeSuperseded: includeSuperseded || undefined,
     page,
     pageSize: PAGE_SIZE,
   };
 
   const query = useQuery({
-    queryKey: queryKeys.timesheets(params),
-    queryFn: () => timesheetsApi.list(params),
+    queryKey: queryKeys.timesheetSiteGroups(params),
+    queryFn: () => timesheetsApi.listBySite(params),
     placeholderData: keepPreviousData,
   });
 
-  // Directory lookup to resolve the business-key employeeId into a filter picker label — same
-  // pattern as PunchesPage.
-  const employeesQuery = useQuery({
-    queryKey: queryKeys.employees({ clientId, pageSize: 200 }),
-    queryFn: () => employeesApi.list({ clientId, pageSize: 200 }),
+  // Directory lookup to resolve the business-key siteId into a filter picker label and a friendly
+  // name in the table — same pattern PunchDetailPage/TimesheetDetailPage already use for lines.
+  const sitesQuery = useQuery({
+    queryKey: queryKeys.sites({ clientId, pageSize: 200 }),
+    queryFn: () => sitesApi.list({ clientId, pageSize: 200 }),
     enabled: Boolean(clientId),
   });
+  const siteNameBySiteId = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const site of sitesQuery.data?.items ?? []) map.set(site.siteId, site.name);
+    return map;
+  }, [sitesQuery.data]);
 
   function resetToFirstPage<T>(setter: (value: T) => void) {
     return (value: T) => {
@@ -97,34 +89,12 @@ export default function TimesheetsPage() {
       <Card className="p-4">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-1.5">
-            <Label htmlFor="employeeFilter">{t("timesheets.employee")}</Label>
-            <Combobox
-              id="employeeFilter"
-              value={employeeId}
-              onValueChange={resetToFirstPage(setEmployeeId)}
-              placeholder={t("common.all")}
-            >
+            <Label htmlFor="siteFilter">{t("timesheets.site")}</Label>
+            <Combobox id="siteFilter" value={siteId} onValueChange={resetToFirstPage(setSiteId)} placeholder={t("common.all")}>
               <ComboboxItem value="">{t("common.all")}</ComboboxItem>
-              {(employeesQuery.data?.items ?? []).map((employee) => (
-                <ComboboxItem key={employee._id} value={employee.employeeId}>
-                  {employee.employeeId}
-                </ComboboxItem>
-              ))}
-            </Combobox>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="statusFilter">{t("timesheets.status")}</Label>
-            <Combobox
-              id="statusFilter"
-              value={status}
-              onValueChange={resetToFirstPage(setStatus)}
-              placeholder={t("common.all")}
-            >
-              <ComboboxItem value="">{t("common.all")}</ComboboxItem>
-              {STATUSES.map((s) => (
-                <ComboboxItem key={s} value={s}>
-                  {t(`timesheets.statusOptions.${s}`)}
+              {(sitesQuery.data?.items ?? []).map((site) => (
+                <ComboboxItem key={site._id} value={site.siteId}>
+                  {site.name}
                 </ComboboxItem>
               ))}
             </Combobox>
@@ -154,8 +124,8 @@ export default function TimesheetsPage() {
         </div>
       ) : items.length === 0 ? (
         <EmptyState
-          title={employeeId || status || includeSuperseded ? t("timesheets.noneMatch") : t("timesheets.noneFound")}
-          description={!employeeId && !status && !includeSuperseded ? t("timesheets.noneFoundHint") : undefined}
+          title={siteId || includeSuperseded ? t("timesheets.noneMatch") : t("timesheets.noneFound")}
+          description={!siteId && !includeSuperseded ? t("timesheets.noneFoundHint") : undefined}
         />
       ) : (
         <Card className="overflow-hidden p-0">
@@ -163,41 +133,39 @@ export default function TimesheetsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t("timesheets.employee")}</TableHead>
+                  <TableHead>{t("timesheets.site")}</TableHead>
                   <TableHead>{t("timesheets.payPeriod")}</TableHead>
                   <TableHead>{t("timesheets.payDate")}</TableHead>
-                  <TableHead>{t("common.status")}</TableHead>
-                  <TableHead>{t("timesheets.stale")}</TableHead>
+                  <TableHead>{t("timesheets.employees")}</TableHead>
                   <TableHead>{t("timesheets.totalHours")}</TableHead>
                   <TableHead>{t("timesheets.totalAmount")}</TableHead>
+                  <TableHead>{t("timesheets.stale")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items.map((timesheet) => (
+                {items.map((group) => (
                   <TableRow
-                    key={timesheet._id}
+                    key={`${group.siteId}__${group.payPeriodId}`}
                     className="cursor-pointer"
-                    onClick={() => router.push(`/timesheets/${timesheet._id}`)}
+                    onClick={() =>
+                      router.push(`/timesheets/site/${encodeURIComponent(group.siteId)}/${encodeURIComponent(group.payPeriodId)}`)
+                    }
                   >
-                    <TableCell className="font-medium">{timesheet.employeeId}</TableCell>
+                    <TableCell className="font-medium">{siteNameBySiteId.get(group.siteId) ?? group.siteId}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {formatDate(timesheet.periodStart)} – {formatDate(timesheet.periodEnd)}
+                      {formatDate(group.periodStart)} – {formatDate(group.periodEnd)}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{formatDate(timesheet.payDate)}</TableCell>
+                    <TableCell className="text-muted-foreground">{formatDate(group.payDate)}</TableCell>
+                    <TableCell className="text-muted-foreground">{group.employeeCount}</TableCell>
+                    <TableCell className="text-muted-foreground">{group.totalHours.toFixed(2)}</TableCell>
+                    <TableCell className="text-muted-foreground">{group.totalAmount.toFixed(2)}</TableCell>
                     <TableCell>
-                      <StatusBadge tone={STATUS_TONE[timesheet.status]}>
-                        {t(`timesheets.statusOptions.${timesheet.status}`)}
-                      </StatusBadge>
-                    </TableCell>
-                    <TableCell>
-                      {timesheet.stale ? (
+                      {group.stale ? (
                         <span title={t("timesheets.staleHint")}>
                           <TriangleAlertIcon className="size-4 text-amber-600 dark:text-amber-400" />
                         </span>
                       ) : null}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{timesheet.totalHours.toFixed(2)}</TableCell>
-                    <TableCell className="text-muted-foreground">{timesheet.totalAmount.toFixed(2)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

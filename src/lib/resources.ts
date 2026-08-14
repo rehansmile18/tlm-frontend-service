@@ -658,6 +658,57 @@ export interface TimesheetListParams {
   pageSize?: number;
 }
 
+export interface TimesheetSiteGroup {
+  siteId: string;
+  payPeriodId: string;
+  periodStart: string;
+  periodEnd: string;
+  payDate: string;
+  employeeCount: number;
+  totalHours: number;
+  totalAmount: number;
+  stale: boolean;
+}
+
+export interface TimesheetSiteGroupListParams {
+  clientId?: string;
+  siteId?: string;
+  payPeriodId?: string;
+  includeSuperseded?: boolean;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface TimesheetGridCell {
+  task: string;
+  totalHours: number;
+  totalAmount: number;
+  rateType: "hourly" | "salary";
+  rate: number;
+}
+
+export interface TimesheetGridRow {
+  employeeId: string;
+  timesheetId: string;
+  status: Timesheet["status"];
+  stale: boolean;
+  version: number;
+  cellsByDate: Record<string, TimesheetGridCell>;
+  totalHours: number;
+  totalAmount: number;
+}
+
+export interface TimesheetGrid {
+  siteId: string;
+  payPeriodId: string;
+  periodStart: string;
+  periodEnd: string;
+  payDate: string;
+  dates: string[];
+  rows: TimesheetGridRow[];
+  totals: { employeeCount: number; totalHours: number; totalAmount: number };
+}
+
 export const timesheetsApi = {
   list: (params: TimesheetListParams = {}) =>
     backendFetch<Paginated<Timesheet>>("/timesheets", { query: { ...params } }),
@@ -665,6 +716,12 @@ export const timesheetsApi = {
   auditTrail: (id: string) => backendFetch<{ entries: unknown[] }>(`/timesheets/${id}/audit-trail`),
   void: (id: string, reason: string) =>
     backendFetch<Timesheet>(`/timesheets/${id}/void`, { method: "POST", body: { reason } }),
+  listBySite: (params: TimesheetSiteGroupListParams = {}) =>
+    backendFetch<Paginated<TimesheetSiteGroup>>("/timesheets/by-site", { query: { ...params } }),
+  getGrid: (siteId: string, payPeriodId: string, params: { includeSuperseded?: boolean } = {}) =>
+    backendFetch<TimesheetGrid>(`/timesheets/by-site/${encodeURIComponent(siteId)}/${encodeURIComponent(payPeriodId)}`, {
+      query: { ...params },
+    }),
 };
 
 // ---- Processing (tlm-backend, proxying tlm-punch-processor) ----

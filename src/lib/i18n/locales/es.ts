@@ -364,8 +364,9 @@ const es: TranslationKeys = {
   timesheets: {
     moduleName: "Hoja de tiempo",
     title: "Hojas de tiempo",
-    description: "Revisa las hojas de tiempo calculadas por periodo de pago y su historial de auditoría.",
+    description: "Revisa las hojas de tiempo calculadas, agrupadas por sitio y periodo de pago.",
     employee: "Empleado",
+    employees: "Empleados",
     payPeriod: "Periodo de pago",
     periodStart: "Inicio del periodo",
     periodEnd: "Fin del periodo",
