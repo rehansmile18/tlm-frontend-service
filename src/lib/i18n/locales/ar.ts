@@ -418,6 +418,8 @@ const ar: TranslationKeys = {
     client: "العميل",
     employees: "الموظفون",
     employeesHint: "اتركه فارغًا لمعالجة جميع الموظفين النشطين لهذا العميل.",
+    selectClientFirst: "اختر عميلاً أولاً",
+    noEmployeesForClient: "لا يوجد موظفون لهذا العميل.",
     asOfDate: "حتى تاريخ",
     run: "تشغيل المعالجة",
     results: "النتائج",

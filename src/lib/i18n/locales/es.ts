@@ -418,6 +418,8 @@ const es: TranslationKeys = {
     client: "Cliente",
     employees: "Empleados",
     employeesHint: "Déjalo vacío para procesar todos los empleados activos de este cliente.",
+    selectClientFirst: "Selecciona primero un cliente",
+    noEmployeesForClient: "No se encontraron empleados para este cliente.",
     asOfDate: "Fecha de referencia",
     run: "Ejecutar procesamiento",
     results: "Resultados",

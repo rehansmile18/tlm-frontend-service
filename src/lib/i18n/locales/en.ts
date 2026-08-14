@@ -418,6 +418,8 @@ const en = {
     client: "Client",
     employees: "Employees",
     employeesHint: "Leave empty to process all active employees for this client.",
+    selectClientFirst: "Select a client first",
+    noEmployeesForClient: "No employees found for this client.",
     asOfDate: "As of date",
     run: "Run processing",
     results: "Results",

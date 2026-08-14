@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState, humanizeError } from "@/components/data-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useEditableClientId } from "@/components/client-picker-field";
 import {
   employeesApi,
   processingApi,
@@ -24,7 +25,6 @@ import {
   type TriggerProcessingBody,
 } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
-import { useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
 
 const processingFormSchema = z.object({
@@ -38,13 +38,11 @@ type ProcessingFormValues = z.infer<typeof processingFormSchema>;
 // action on the Timesheets list page, gated on the processing:trigger permission there.
 export default function ProcessingPage() {
   const { t } = useTranslation();
-  const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // CLIENT_ADMIN/SITE_MANAGER sessions always carry their own clientId. A PLATFORM_ADMIN's
-  // session has none (they operate across clients), which this simple resolution doesn't cover.
-  // TODO: PLATFORM_ADMIN needs an explicit client picker to trigger processing for a chosen client.
-  const clientId = user?.clientId ?? "";
+  // CLIENT_ADMIN/SITE_MANAGER sessions already carry their own clientId; PLATFORM_ADMIN has none
+  // (they operate across every client), so this renders an explicit picker for that role only.
+  const { clientId, picker: clientPicker } = useEditableClientId();
 
   const [result, setResult] = useState<ProcessingRunResult | null>(null);
 
@@ -112,6 +110,8 @@ export default function ProcessingPage() {
       <Card>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {clientPicker}
+
             <div className="space-y-1.5">
               <Label htmlFor="asOfDate">{t("processing.asOfDate")}</Label>
               <Controller
@@ -139,8 +139,10 @@ export default function ProcessingPage() {
                 <ErrorState error={employeesQuery.error} onRetry={() => employeesQuery.refetch()} />
               ) : employeesQuery.isLoading ? (
                 <Skeleton className="h-32 w-full" />
+              ) : !clientId ? (
+                <p className="text-sm text-muted-foreground">{t("processing.selectClientFirst")}</p>
               ) : employees.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No employees found for this client.</p>
+                <p className="text-sm text-muted-foreground">{t("processing.noEmployeesForClient")}</p>
               ) : (
                 <Controller
                   control={control}
