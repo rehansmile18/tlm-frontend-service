@@ -13,6 +13,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { ErrorState } from "@/components/data-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { VoidTimesheetDialog } from "@/components/timesheets/void-timesheet-dialog";
+import { AuditTrailTimeline } from "@/components/timesheets/audit-trail-timeline";
 import { sitesApi, timesheetsApi, type Timesheet } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
@@ -26,28 +27,6 @@ const STATUS_TONE: Record<Timesheet["status"], BadgeTone> = {
   voided: "danger",
   failed: "danger",
 };
-
-// Renders one audit-trail entry: a flat key/value grid when it looks object-shaped, otherwise a
-// raw JSON dump. The backend's audit-trail shape is intentionally untyped (`unknown[]`), so this
-// stays a best-effort rendering rather than a strict schema.
-function AuditTrailEntryView({ entry }: { entry: unknown }) {
-  if (entry && typeof entry === "object" && !Array.isArray(entry)) {
-    const fields = Object.entries(entry as Record<string, unknown>);
-    return (
-      <dl className="grid gap-x-4 gap-y-1.5 sm:grid-cols-2">
-        {fields.map(([key, value]) => (
-          <div key={key}>
-            <dt className="text-xs text-muted-foreground">{key}</dt>
-            <dd className="text-sm font-medium break-all">
-              {typeof value === "object" && value !== null ? JSON.stringify(value) : String(value)}
-            </dd>
-          </div>
-        ))}
-      </dl>
-    );
-  }
-  return <pre className="overflow-x-auto text-xs">{JSON.stringify(entry, null, 2)}</pre>;
-}
 
 export default function TimesheetDetailPage() {
   // The [timesheetId] route param is actually the timesheet's Mongo _id (that's what
@@ -252,13 +231,7 @@ export default function TimesheetDetailPage() {
               ) : (auditTrailQuery.data?.entries.length ?? 0) === 0 ? (
                 <p className="text-sm text-muted-foreground">{t("common.noEntriesYet")}</p>
               ) : (
-                <div className="space-y-3">
-                  {auditTrailQuery.data!.entries.map((entry, i) => (
-                    <div key={i} className="rounded-lg border border-input p-3">
-                      <AuditTrailEntryView entry={entry} />
-                    </div>
-                  ))}
-                </div>
+                <AuditTrailTimeline entries={auditTrailQuery.data!.entries} />
               )}
             </CardContent>
           </Card>
