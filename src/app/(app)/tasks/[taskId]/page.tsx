@@ -13,7 +13,7 @@ import { tasksApi } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
-import { formatDate } from "@/lib/format";
+import { useDateFormat } from "@/lib/date-format";
 
 function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -28,6 +28,7 @@ export default function TaskDetailPage() {
   const { taskId } = useParams<{ taskId: string }>();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { formatDate } = useDateFormat();
   const canWrite = hasPermission(user, "task:write");
 
   const taskQuery = useQuery({ queryKey: queryKeys.task(taskId), queryFn: () => tasksApi.get(taskId) });

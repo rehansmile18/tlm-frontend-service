@@ -2,13 +2,14 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "./auth";
-import { clientsApi, geoApi, type Location } from "./resources";
+import { authApi, clientsApi, geoApi, type Location } from "./resources";
 import { queryKeys } from "./query-keys";
 
 /**
  * The caller's own client (null for PLATFORM_ADMIN, who spans every client). Drives client-wide
  * settings shown to every user of that client — currently just moduleLabels (per-module display
- * name overrides). Safe to call from multiple places at once: React Query dedupes by query key.
+ * name overrides) and the default calendarFormat (see date-format.tsx). Safe to call from multiple
+ * places at once: React Query dedupes by query key.
  */
 export function useMyClient() {
   const { isAuthenticated } = useAuth();
@@ -17,6 +18,21 @@ export function useMyClient() {
     queryFn: () => clientsApi.me(),
     enabled: isAuthenticated,
     staleTime: 60_000,
+  });
+}
+
+/**
+ * The caller's own live profile (TLM's GET /users/me) — distinct from the auth store's cached
+ * SessionUser, which only carries auth-relevant fields (role/clientId/siteIds/permissions) and
+ * doesn't refresh when a self-service preference like preferredDateFormat changes. Drives
+ * DateFormatProvider (see date-format.tsx) and the Profile page's preferences form.
+ */
+export function useMyProfile() {
+  const { isAuthenticated } = useAuth();
+  return useQuery({
+    queryKey: queryKeys.myProfile,
+    queryFn: () => authApi.me(),
+    enabled: isAuthenticated,
   });
 }
 

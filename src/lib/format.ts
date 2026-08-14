@@ -1,4 +1,21 @@
 import { format, isValid, parseISO } from "date-fns";
+import type { CalendarFormat, TimeFormat } from "./resources";
+
+// date-fns pattern for each CalendarFormat/TimeFormat setting (see useDateFormat/DateFormatProvider
+// in date-format.tsx, which is the preference-aware entry point most UI should use instead of these).
+export const CALENDAR_FORMAT_PATTERNS: Record<CalendarFormat, string> = {
+  "MM/DD/YYYY": "MM/dd/yyyy",
+  "DD/MM/YYYY": "dd/MM/yyyy",
+  "YYYY-MM-DD": "yyyy-MM-dd",
+  "DD.MM.YYYY": "dd.MM.yyyy",
+  "DD-MM-YYYY": "dd-MM-yyyy",
+  "YYYY/MM/DD": "yyyy/MM/dd",
+};
+
+export const TIME_FORMAT_PATTERNS: Record<TimeFormat, string> = {
+  "12h": "h:mm a",
+  "24h": "HH:mm",
+};
 
 // Maps a status to a shadcn Badge variant + tailwind accent, so status reads at a glance.
 export type BadgeTone = "neutral" | "info" | "success" | "warning" | "muted" | "danger";
@@ -16,22 +33,22 @@ function toDate(value: string | Date): Date {
   return value instanceof Date ? value : parseISO(value);
 }
 
-/** e.g. "Jul 27, 2026" */
-export function formatDate(iso: string | Date): string {
+/** Locale-agnostic fallback (e.g. "Jul 27, 2026") for call sites outside useDateFormat's reach. */
+export function formatDate(iso: string | Date, datePattern: string = "MMM d, yyyy"): string {
   const d = toDate(iso);
-  return isValid(d) ? format(d, "MMM d, yyyy") : "—";
+  return isValid(d) ? format(d, datePattern) : "—";
 }
 
-/** e.g. "Jul 27, 2026, 9:00 AM" */
-export function formatDateTime(iso: string | Date): string {
+/** Locale-agnostic fallback (e.g. "Jul 27, 2026, 9:00 AM") for call sites outside useDateFormat's reach. */
+export function formatDateTime(iso: string | Date, datePattern: string = "MMM d, yyyy", timePattern: string = "h:mm a"): string {
   const d = toDate(iso);
-  return isValid(d) ? format(d, "MMM d, yyyy, h:mm a") : "—";
+  return isValid(d) ? format(d, `${datePattern}, ${timePattern}`) : "—";
 }
 
-/** e.g. "9:00 AM" */
-export function formatTime(iso: string | Date): string {
+/** Locale-agnostic fallback (e.g. "9:00 AM") for call sites outside useDateFormat's reach. */
+export function formatTime(iso: string | Date, timePattern: string = "h:mm a"): string {
   const d = toDate(iso);
-  return isValid(d) ? format(d, "h:mm a") : "—";
+  return isValid(d) ? format(d, timePattern) : "—";
 }
 
 /** Minutes -> compact duration, e.g. 90 -> "1h 30m", 45 -> "45m", 120 -> "2h". */

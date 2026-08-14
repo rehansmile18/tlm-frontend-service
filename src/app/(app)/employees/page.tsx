@@ -17,7 +17,7 @@ import { employeeGroupsApi, employeesApi, type EmployeeListParams } from "@/lib/
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
-import { formatDate } from "@/lib/format";
+import { useDateFormat } from "@/lib/date-format";
 
 const PAGE_SIZE = 25;
 
@@ -25,6 +25,7 @@ export default function EmployeesPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { formatDate } = useDateFormat();
   const canWrite = hasPermission(user, "employee:write");
 
   const [search, setSearch] = useState("");

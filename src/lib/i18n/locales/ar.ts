@@ -93,6 +93,17 @@ const ar: TranslationKeys = {
     language: "اللغة",
     noSitesAssigned: "لا توجد مواقع مخصّصة",
     noPermissions: "لا توجد صلاحيات مخصّصة",
+    dateTimeFormatTitle: "تنسيق التاريخ والوقت",
+    dateTimeFormatDescription: "يتجاوز الإعداد الافتراضي لعميلك لك فقط. يُطبَّق فورًا وفي كل تسجيل دخول لاحق.",
+    dateFormat: "تنسيق التاريخ",
+    timeFormat: "تنسيق الوقت",
+    timeFormatOptions: {
+      "12h": "12 ساعة (9:00 صباحًا)",
+      "24h": "24 ساعة (09:00)",
+    },
+    useClientDefault: "استخدام الإعداد الافتراضي للعميل",
+    preferencesSaved: "تم حفظ التفضيلات",
+    couldntSavePreferences: "تعذّر حفظ التفضيلات",
   },
   employees: {
     moduleName: "موظف",

@@ -93,6 +93,17 @@ const es: TranslationKeys = {
     language: "Idioma",
     noSitesAssigned: "No hay sitios asignados",
     noPermissions: "No hay permisos asignados",
+    dateTimeFormatTitle: "Formato de fecha y hora",
+    dateTimeFormatDescription: "Anula el valor predeterminado de tu cliente solo para ti. Se aplica de inmediato y en cada inicio de sesión futuro.",
+    dateFormat: "Formato de fecha",
+    timeFormat: "Formato de hora",
+    timeFormatOptions: {
+      "12h": "12 horas (9:00 AM)",
+      "24h": "24 horas (09:00)",
+    },
+    useClientDefault: "Usar el valor predeterminado del cliente",
+    preferencesSaved: "Preferencias guardadas",
+    couldntSavePreferences: "No se pudieron guardar las preferencias",
   },
   employees: {
     moduleName: "Empleado",

@@ -13,7 +13,7 @@ import { sitesApi, timesheetsApi } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
-import { formatDate } from "@/lib/format";
+import { useDateFormat } from "@/lib/date-format";
 
 export default function TimesheetSiteGridPage() {
   const params = useParams<{ siteId: string; payPeriodId: string }>();
@@ -22,6 +22,7 @@ export default function TimesheetSiteGridPage() {
 
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { formatDate } = useDateFormat();
   const clientId = user?.clientId ?? "";
 
   const gridQuery = useQuery({

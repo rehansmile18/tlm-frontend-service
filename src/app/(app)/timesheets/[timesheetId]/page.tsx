@@ -18,7 +18,8 @@ import { sitesApi, timesheetsApi, type Timesheet } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
-import { formatDate, type BadgeTone } from "@/lib/format";
+import { useDateFormat } from "@/lib/date-format";
+import { type BadgeTone } from "@/lib/format";
 
 const STATUS_TONE: Record<Timesheet["status"], BadgeTone> = {
   draft: "neutral",
@@ -38,6 +39,7 @@ export default function TimesheetDetailPage() {
 
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { formatDate } = useDateFormat();
   const [voidOpen, setVoidOpen] = useState(false);
 
   const query = useQuery({

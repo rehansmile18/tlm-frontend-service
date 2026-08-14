@@ -20,7 +20,8 @@ import { employeesApi, sitesApi, punchesApi, type Punch, type PunchListParams } 
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
-import { formatDateTime, formatDuration, type BadgeTone } from "@/lib/format";
+import { useDateFormat } from "@/lib/date-format";
+import { formatDuration, type BadgeTone } from "@/lib/format";
 
 const PAGE_SIZE = 25;
 
@@ -39,6 +40,7 @@ export default function PunchesPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { formatDateTime } = useDateFormat();
   const canWrite = hasPermission(user, "punch:write");
   const clientId = user?.clientId ?? "";
 

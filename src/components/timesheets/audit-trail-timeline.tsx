@@ -4,7 +4,8 @@ import { useState } from "react";
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
 import { useTranslation, type TranslationKey } from "@/lib/i18n/i18n";
-import { formatDate, formatDuration } from "@/lib/format";
+import { useDateFormat } from "@/lib/date-format";
+import { formatDuration } from "@/lib/format";
 
 interface HourBuckets {
   regularMinutes: number;
@@ -127,6 +128,7 @@ function AuditStep({ entry, stepNumber }: { entry: AuditEntry; stepNumber: numbe
  * history at a glance, instead of a flat list of raw JSON blobs.
  */
 export function AuditTrailTimeline({ entries }: { entries: unknown[] }) {
+  const { formatDate } = useDateFormat();
   const parsed = entries.map(asAuditEntry).filter((e): e is AuditEntry => e !== null);
   const dateGroups = new Map<string, AuditEntry[]>();
   for (const entry of parsed) {

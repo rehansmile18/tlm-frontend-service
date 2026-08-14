@@ -16,7 +16,8 @@ import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
 import { cn } from "@/lib/utils";
-import { formatDateTime, formatDuration, type BadgeTone } from "@/lib/format";
+import { useDateFormat } from "@/lib/date-format";
+import { formatDuration, type BadgeTone } from "@/lib/format";
 
 const STATUS_TONE: Record<Punch["status"], BadgeTone> = {
   open: "info",
@@ -31,6 +32,7 @@ export default function PunchDetailPage() {
 
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { formatDateTime } = useDateFormat();
   const canWrite = hasPermission(user, "punch:write");
 
   const query = useQuery({

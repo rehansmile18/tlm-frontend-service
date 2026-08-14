@@ -16,7 +16,7 @@ import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
 import { useLocationSummary } from "@/lib/hooks";
 import { useTranslation } from "@/lib/i18n/i18n";
-import { formatDateTime } from "@/lib/format";
+import { useDateFormat } from "@/lib/date-format";
 
 export default function EmployeeDetailPage() {
   // The [employeeId] route param is actually the employee's Mongo _id (that's what
@@ -27,6 +27,7 @@ export default function EmployeeDetailPage() {
 
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { formatDateTime } = useDateFormat();
   const canWrite = hasPermission(user, "employee:write");
 
   const query = useQuery({

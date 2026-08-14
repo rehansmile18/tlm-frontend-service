@@ -14,7 +14,7 @@ import { payrollCalendarsApi } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
-import { formatDate } from "@/lib/format";
+import { useDateFormat } from "@/lib/date-format";
 
 export default function PayrollCalendarDetailPage() {
   const params = useParams<{ calendarId: string }>();
@@ -22,6 +22,7 @@ export default function PayrollCalendarDetailPage() {
 
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { formatDate } = useDateFormat();
   const canWrite = hasPermission(user, "payrollCalendar:write");
 
   const query = useQuery({

@@ -93,6 +93,17 @@ const en = {
     language: "Language",
     noSitesAssigned: "No sites assigned",
     noPermissions: "No permissions assigned",
+    dateTimeFormatTitle: "Date & time format",
+    dateTimeFormatDescription: "Overrides your client's default just for you. Applies immediately, and every future login.",
+    dateFormat: "Date format",
+    timeFormat: "Time format",
+    timeFormatOptions: {
+      "12h": "12-hour (9:00 AM)",
+      "24h": "24-hour (09:00)",
+    },
+    useClientDefault: "Use client default",
+    preferencesSaved: "Preferences saved",
+    couldntSavePreferences: "Couldn't save preferences",
   },
   employees: {
     moduleName: "Employee",

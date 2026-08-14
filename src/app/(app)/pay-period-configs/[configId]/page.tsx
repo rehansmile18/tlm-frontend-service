@@ -13,7 +13,7 @@ import { payPeriodConfigsApi, payrollCalendarsApi } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
-import { formatDate, formatDateTime } from "@/lib/format";
+import { useDateFormat } from "@/lib/date-format";
 
 // No i18n key exists for weekday names — see the matching comment in
 // pay-period-config-form-dialog.tsx for why these are plain hardcoded English labels.
@@ -25,6 +25,7 @@ export default function PayPeriodConfigDetailPage() {
 
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { formatDate, formatDateTime } = useDateFormat();
   const canWrite = hasPermission(user, "payPeriodConfig:write");
 
   const query = useQuery({

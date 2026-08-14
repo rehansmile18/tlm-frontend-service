@@ -17,7 +17,7 @@ import { usersApi, type UserListParams } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { useAuth } from "@/lib/auth";
 import { useTranslation, type TranslationKey } from "@/lib/i18n/i18n";
-import { formatDate } from "@/lib/format";
+import { useDateFormat } from "@/lib/date-format";
 
 const PAGE_SIZE = 25;
 
@@ -25,6 +25,7 @@ export default function TeamPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { formatDate } = useDateFormat();
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);

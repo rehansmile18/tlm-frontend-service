@@ -12,7 +12,7 @@ import { employeesApi, schedulesApi, type ScheduledShift, type ScheduleListParam
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
-import { formatTime } from "@/lib/format";
+import { useDateFormat } from "@/lib/date-format";
 
 type DialogState =
   | { mode: "closed" }
@@ -33,6 +33,7 @@ export function RosterGrid({
   mode: "week" | "day";
 }) {
   const { t } = useTranslation();
+  const { formatTime } = useDateFormat();
   const { user } = useAuth();
   const canWrite = hasPermission(user, "schedule:write");
   const [dialogState, setDialogState] = useState<DialogState>({ mode: "closed" });

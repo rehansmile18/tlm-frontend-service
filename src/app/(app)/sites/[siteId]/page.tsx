@@ -14,7 +14,7 @@ import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
 import { useLocationSummary } from "@/lib/hooks";
 import { useTranslation } from "@/lib/i18n/i18n";
-import { formatDate } from "@/lib/format";
+import { useDateFormat } from "@/lib/date-format";
 
 function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -29,6 +29,7 @@ export default function SiteDetailPage() {
   const { siteId } = useParams<{ siteId: string }>();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { formatDate } = useDateFormat();
   const canWrite = hasPermission(user, "site:write");
 
   const siteQuery = useQuery({ queryKey: queryKeys.site(siteId), queryFn: () => sitesApi.get(siteId) });

@@ -23,6 +23,19 @@ export interface LoginResult {
   };
 }
 
+// A user's own override of how dates render throughout the app; null defers to their client's
+// shared calendarFormat (see ClientRecord below). Mirrors TLM's own CALENDAR_FORMATS
+// (src/types/domain.ts) exactly — covers the major real-world regional conventions: US, UK/EU/
+// Commonwealth/India, ISO 8601, German/Central-Eastern European dotted, dashed alternate, and
+// Japanese slashed.
+export const CALENDAR_FORMATS = ["MM/DD/YYYY", "DD/MM/YYYY", "YYYY-MM-DD", "DD.MM.YYYY", "DD-MM-YYYY", "YYYY/MM/DD"] as const;
+export type CalendarFormat = (typeof CALENDAR_FORMATS)[number];
+
+// Same override posture as CalendarFormat above, for the clock (12-hour vs 24-hour). Mirrors
+// TLM's own TIME_FORMATS (src/types/domain.ts) exactly.
+export const TIME_FORMATS = ["12h", "24h"] as const;
+export type TimeFormat = (typeof TIME_FORMATS)[number];
+
 export interface MeResult {
   userId: string;
   email: string;
@@ -31,12 +44,19 @@ export interface MeResult {
   siteIds: string[];
   permissions: string[];
   status: string;
+  preferredDateFormat: CalendarFormat | null;
+  preferredTimeFormat: TimeFormat | null;
 }
 
 export const authApi = {
   login: (email: string, password: string) =>
     tlmFetch<LoginResult>("/auth/login", { method: "POST", body: { email, password } }),
   me: () => tlmFetch<MeResult>("/users/me"),
+  // Self-service — every authenticated role may update their own preferences (see TLM's
+  // PATCH /users/me). Only preferredDateFormat/preferredTimeFormat are wired up on this side;
+  // other fields updateProfileSchema accepts (preferredLanguage) aren't sent from here.
+  updateMe: (body: { preferredDateFormat?: CalendarFormat | null; preferredTimeFormat?: TimeFormat | null }) =>
+    tlmFetch<MeResult>("/users/me", { method: "PATCH", body }),
 };
 
 // ---- Users (TLM; for the future Team/Permissions management page) ----
@@ -97,7 +117,8 @@ export interface ClientRecord {
   name: string;
   country: string | null;
   enabledStates: string[];
-  calendarFormat: string;
+  calendarFormat: CalendarFormat;
+  timeFormat: TimeFormat;
   moduleLabels: ModuleLabelOverrides | null;
 }
 

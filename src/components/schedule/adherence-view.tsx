@@ -11,7 +11,8 @@ import { StatusBadge } from "@/components/status-badge";
 import { employeesApi, sitesApi, schedulesApi, type AdherenceEntry } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { useTranslation, type TranslationKey } from "@/lib/i18n/i18n";
-import { formatDate, formatDuration, formatTime, type BadgeTone } from "@/lib/format";
+import { useDateFormat } from "@/lib/date-format";
+import { formatDuration, type BadgeTone } from "@/lib/format";
 
 function toneForAdherence(status: AdherenceEntry["status"]): BadgeTone {
   switch (status) {
@@ -46,6 +47,7 @@ export function AdherenceView({
   to: Date;
 }) {
   const { t } = useTranslation();
+  const { formatDate, formatTime } = useDateFormat();
 
   const params = { siteId, employeeId, from: from.toISOString(), to: to.toISOString() };
   const query = useQuery({

@@ -1,19 +1,96 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import { ChevronRightIcon } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ChevronRightIcon, Loader2Icon } from "lucide-react";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Combobox, ComboboxItem } from "@/components/ui/combobox";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { sitesApi } from "@/lib/resources";
+import { humanizeError } from "@/components/data-state";
+import { authApi, sitesApi, CALENDAR_FORMATS, TIME_FORMATS, type CalendarFormat, type TimeFormat, type MeResult } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
+import { useMyProfile } from "@/lib/hooks";
 import { useAuth, useRole } from "@/lib/auth";
 import { LOCALES, useTranslation } from "@/lib/i18n/i18n";
+
+// A blank Combobox value represents "use the client default" (server-side null) — same sentinel
+// convention used elsewhere in the app for an unset/inherited preference.
+const CLIENT_DEFAULT = "";
+
+function DateTimeFormatCard({ profile }: { profile: MeResult }) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [dateFormat, setDateFormat] = useState<string>(profile.preferredDateFormat ?? CLIENT_DEFAULT);
+  const [timeFormat, setTimeFormat] = useState<string>(profile.preferredTimeFormat ?? CLIENT_DEFAULT);
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      authApi.updateMe({
+        preferredDateFormat: (dateFormat || null) as CalendarFormat | null,
+        preferredTimeFormat: (timeFormat || null) as TimeFormat | null,
+      }),
+    onSuccess: (updated) => {
+      // Applies immediately for this session (every date/time on screen re-renders in the new
+      // format right away) in addition to persisting it for every future login.
+      queryClient.setQueryData(queryKeys.myProfile, updated);
+      toast.success(t("profile.preferencesSaved"));
+    },
+    onError: (error) => toast.error(t("profile.couldntSavePreferences"), { description: humanizeError(error) }),
+  });
+
+  function submit(event: React.FormEvent) {
+    event.preventDefault();
+    mutation.mutate();
+  }
+
+  return (
+    <form onSubmit={submit}>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("profile.dateTimeFormatTitle")}</CardTitle>
+          <CardDescription>{t("profile.dateTimeFormatDescription")}</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="preferredDateFormat">{t("profile.dateFormat")}</Label>
+            <Combobox id="preferredDateFormat" value={dateFormat} onValueChange={setDateFormat}>
+              <ComboboxItem value={CLIENT_DEFAULT}>{t("profile.useClientDefault")}</ComboboxItem>
+              {CALENDAR_FORMATS.map((f) => (
+                <ComboboxItem key={f} value={f}>
+                  {f}
+                </ComboboxItem>
+              ))}
+            </Combobox>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="preferredTimeFormat">{t("profile.timeFormat")}</Label>
+            <Combobox id="preferredTimeFormat" value={timeFormat} onValueChange={setTimeFormat}>
+              <ComboboxItem value={CLIENT_DEFAULT}>{t("profile.useClientDefault")}</ComboboxItem>
+              {TIME_FORMATS.map((f) => (
+                <ComboboxItem key={f} value={f}>
+                  {t(`profile.timeFormatOptions.${f}`)}
+                </ComboboxItem>
+              ))}
+            </Combobox>
+          </div>
+        </CardContent>
+        <CardFooter className="justify-end">
+          <Button type="submit" disabled={mutation.isPending}>
+            {mutation.isPending ? <Loader2Icon className="size-4 animate-spin" /> : null}
+            {t("common.save")}
+          </Button>
+        </CardFooter>
+      </Card>
+    </form>
+  );
+}
 
 function ProfileRow({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -47,6 +124,8 @@ export default function ProfilePage() {
     for (const site of sitesQuery.data?.items ?? []) map.set(site.siteId, site.name);
     return map;
   }, [sitesQuery.data]);
+
+  const profileQuery = useMyProfile();
 
   return (
     <>
@@ -117,9 +196,15 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Read-only by design: TLM's usersApi (see resources.ts) is for admins managing OTHER
-          users' accounts — there is no "update my own profile" endpoint for a user to edit their
-          own email/role/sites/permissions, so no edit form or button is offered here. */}
+      {profileQuery.isLoading || !profileQuery.data ? (
+        <Skeleton className="h-48 w-full" />
+      ) : (
+        <DateTimeFormatCard profile={profileQuery.data} />
+      )}
+
+      {/* Read-only by design below the preference cards above: TLM's usersApi (see resources.ts)
+          is for admins managing OTHER users' accounts — there is no endpoint for a user to edit
+          their own email/role/sites/permissions, so no edit form or button is offered for those. */}
 
       {/* Module-name customization is a client-wide (tenant) setting, not personal — only the
           roles that can actually edit it (see /profile/module-names) get the entry point here. */}
