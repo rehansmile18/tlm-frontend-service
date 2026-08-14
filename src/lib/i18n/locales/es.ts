@@ -461,6 +461,7 @@ const es: TranslationKeys = {
   customFields: {
     title: "Campos personalizados",
     none: "Aún no hay campos personalizados definidos para este cliente.",
+    selectClientFirst: "Selecciona primero un cliente",
     addFieldLabel: "Nombre del nuevo campo",
     addFieldPlaceholder: "p. ej. Número de credencial",
     addField: "Agregar campo",

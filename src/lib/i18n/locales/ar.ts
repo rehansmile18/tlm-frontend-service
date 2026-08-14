@@ -461,6 +461,7 @@ const ar: TranslationKeys = {
   customFields: {
     title: "الحقول المخصّصة",
     none: "لا توجد حقول مخصّصة معرّفة بعد لهذا العميل.",
+    selectClientFirst: "اختر عميلاً أولاً",
     addFieldLabel: "اسم الحقل الجديد",
     addFieldPlaceholder: "مثال: رقم الشارة",
     addField: "إضافة حقل",

@@ -461,6 +461,7 @@ const en = {
   customFields: {
     title: "Custom fields",
     none: "No custom fields defined yet for this client.",
+    selectClientFirst: "Select a client first",
     addFieldLabel: "New field name",
     addFieldPlaceholder: "e.g. Badge Number",
     addField: "Add field",

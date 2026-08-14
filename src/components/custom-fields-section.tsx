@@ -62,7 +62,9 @@ export function CustomFieldsSection({
 
   return (
     <div className="space-y-3">
-      {definitions.length === 0 ? (
+      {!clientId ? (
+        <p className="text-xs text-muted-foreground">{t("customFields.selectClientFirst")}</p>
+      ) : definitions.length === 0 ? (
         <p className="text-xs text-muted-foreground">{t("customFields.none")}</p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -87,12 +89,13 @@ export function CustomFieldsSection({
             value={newFieldName}
             onChange={(e) => setNewFieldName(e.target.value)}
             placeholder={t("customFields.addFieldPlaceholder")}
+            disabled={!clientId}
           />
         </div>
         <Button
           type="button"
           variant="outline"
-          disabled={!newFieldName.trim() || createMutation.isPending}
+          disabled={!clientId || !newFieldName.trim() || createMutation.isPending}
           onClick={() => createMutation.mutate(newFieldName.trim())}
         >
           <PlusIcon className="size-4" />
