@@ -11,14 +11,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTranslation } from "@/lib/i18n/i18n";
+import { THIS_APP, OTHER_APP_URL } from "@/lib/app-identity";
 
-// This app IS Site Operations, so its own entry is always "active" regardless of whether
-// NEXT_PUBLIC_RULE_REPO_APP_URL happens to be configured — the other app's url is a real
-// cross-origin navigation, not a Next.js route, and only that entry depends on the env var.
-const APPS = [
-  { key: "siteOperationsApp" as const, url: undefined, active: true },
-  { key: "ruleRepositoryApp" as const, url: process.env.NEXT_PUBLIC_RULE_REPO_APP_URL, active: false },
-];
+// Whichever app this build is, its own entry is always "active" regardless of whether the other
+// app's url happens to be configured — that url is a real cross-origin navigation, not a Next.js
+// route, so only the other entry depends on the env var.
+const ALL_APPS = ["ruleRepositoryApp", "siteOperationsApp"] as const;
+const APPS = ALL_APPS.map((key) =>
+  key === THIS_APP ? { key, url: undefined, active: true } : { key, url: OTHER_APP_URL, active: false }
+);
 
 export function AppSwitcher() {
   const { t } = useTranslation();

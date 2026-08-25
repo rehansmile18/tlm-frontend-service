@@ -1,7 +1,6 @@
 // Shared avatar constants/helpers. The actual crop/zoom-to-data-URL work lives in
 // components/avatar-crop-dialog.tsx, since it's inherently stateful (pan/zoom UI) rather than a
-// pure function. initialsFromEmail already lives in components/app-shell/sidebar.tsx (used by the
-// sidebar/topbar avatars) — reused here rather than duplicated.
+// pure function.
 
 export const AVATAR_OUTPUT_SIZE = 256; // px, square — the final uploaded image's dimensions
 export const AVATAR_MAX_ZOOM = 3;
@@ -17,4 +16,17 @@ export function validateImageFile(file: File): void {
   if (file.size > MAX_SOURCE_FILE_BYTES) {
     throw new AvatarImageError("Image is too large");
   }
+}
+
+/**
+ * Fallback monogram for a user with no uploaded picture. Prefers true initials when the address
+ * separates names ("john.smith@" -> "JS") and falls back to the first two characters otherwise,
+ * so the common corporate address formats produce something recognisable rather than a truncated
+ * first name.
+ */
+export function initialsFromEmail(email: string): string {
+  const local = email.split("@")[0] ?? "";
+  const parts = local.split(/[.\-_+]/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0]![0]! + parts[1]![0]!).toUpperCase();
+  return local.slice(0, 2).toUpperCase() || "?";
 }

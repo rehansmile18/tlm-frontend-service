@@ -17,7 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { humanizeError } from "@/components/data-state";
 import { UserAvatar } from "@/components/user-avatar";
 import { AvatarCropDialog } from "@/components/avatar-crop-dialog";
-import { initialsFromEmail } from "@/components/app-shell/sidebar";
+import { initialsFromEmail } from "@/lib/avatar";
 import { AvatarImageError, validateImageFile } from "@/lib/avatar";
 import {
   authApi,

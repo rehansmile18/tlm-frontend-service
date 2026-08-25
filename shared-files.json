@@ -8,9 +8,11 @@
     "scripts/check-shared.mjs": "6e4865a00f086b26b12edca33404ead40680c37cbb8cf4e0191f0f16fc2bcdcf",
     "src/app/(app)/layout.tsx": "cf81054d01ed708d2aefe3e9f05f2de98df35edbdb619b7f6b7217f4066f7616",
     "src/app/page.tsx": "832b647cd752da7f0ad0313ca426a04bfd851d972467bb003294a99b4caefde7",
+    "src/components/app-shell/app-switcher.tsx": "9c31e3be02400494229074d8932893bdd776d5b7ede445349ccfcb5be88237c0",
     "src/components/app-shell/theme-toggle.tsx": "c36780c31c6ee34577f30f4583d4704b4cef961498e94d82bfda327a572c69bc",
     "src/components/avatar-crop-dialog.tsx": "0c6f2773fe956b71b997bc46b4cc923f2bb29b9dfce1299cc0a910c2dae180a7",
     "src/components/data-state.tsx": "6f98160c7d697823944f26c4a25e0a1f19f70dee67b777e0298e5792a315d1bc",
+    "src/components/page-header.tsx": "7a0cd945e31e76f2777951f2993a50d63322a087fdf2e993639f5b177db7a987",
     "src/components/status-badge.tsx": "39545fab9f06a9de40a708506d82d1cedbf746ff3f016e524ecb8a476b0bcc60",
     "src/components/ui/alert.tsx": "d69afac32ae7182cd425ee6684483abb5ccf22388f8e6721b59723aefa5a0b36",
     "src/components/ui/badge.tsx": "b3244bcc807fafbc6f41a347cf4ce2462457bb34fa88229d1651972aee6ef167",
@@ -29,6 +31,9 @@
     "src/components/ui/tabs.tsx": "fcc6af7fe5945e782f00940b01558ac78c6f272b857842f22e400e5fd7ba2a0f",
     "src/components/ui/textarea.tsx": "58b58d84fc54ba5f4ca46937870c619349fd9eccc4d494250ac7bc73a94e05e9",
     "src/components/ui/tooltip.tsx": "2cea2294d4947b88d815860f64e0b5e0eb47a59bde47cfd194aac2230c923865",
+    "src/components/user-avatar.tsx": "540857c7b6f0cfea141cd256fcbe56b518f4d536de4efc6a2e9033642cf905ea",
+    "src/lib/api-core.ts": "e76cad1be89e4ef6b2138facadd249af165d9b1f9d75c5aaed5d8310b6d035cc",
+    "src/lib/avatar.ts": "022e48546bebd6a1bf89de77111c04b0c07ae854397150a12dfaea4420288fe4",
     "src/lib/utils.ts": "7c8c3dfc0cdd370d44932828eb067ef771c8fe7996693221d5d4b90af6d54f2d",
     "src/test/setup.ts": "dafb59ca9b69ecba77c6c38ab47ef7842b9af468eb773a95eaf7eef5b7ad632f"
   }

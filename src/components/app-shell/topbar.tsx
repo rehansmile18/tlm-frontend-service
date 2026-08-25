@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth";
 import { useTranslation, type TranslationKey } from "@/lib/i18n/i18n";
-import { Brand, initialsFromEmail } from "./sidebar";
+import { Brand } from "./sidebar";
+import { initialsFromEmail } from "@/lib/avatar";
 import { SidebarNav } from "./sidebar-nav";
 import { ThemeToggle } from "./theme-toggle";
 import { AppSwitcher } from "./app-switcher";
