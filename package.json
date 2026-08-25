@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "node scripts/check-shared.mjs && vitest run",
+    "check:shared": "node scripts/check-shared.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

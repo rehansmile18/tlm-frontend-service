@@ -1,0 +1,35 @@
+{
+  "_comment": "Files that must stay byte-identical between tlm-frontend and tlm-frontend-service. Verified by `npm run check:shared` (which `npm test` runs). See scripts/check-shared.mjs for how to change one.",
+  "peerRepos": [
+    "tlm-frontend",
+    "tlm-frontend-service"
+  ],
+  "files": {
+    "scripts/check-shared.mjs": "6e4865a00f086b26b12edca33404ead40680c37cbb8cf4e0191f0f16fc2bcdcf",
+    "src/app/(app)/layout.tsx": "cf81054d01ed708d2aefe3e9f05f2de98df35edbdb619b7f6b7217f4066f7616",
+    "src/app/page.tsx": "832b647cd752da7f0ad0313ca426a04bfd851d972467bb003294a99b4caefde7",
+    "src/components/app-shell/theme-toggle.tsx": "c36780c31c6ee34577f30f4583d4704b4cef961498e94d82bfda327a572c69bc",
+    "src/components/avatar-crop-dialog.tsx": "0c6f2773fe956b71b997bc46b4cc923f2bb29b9dfce1299cc0a910c2dae180a7",
+    "src/components/data-state.tsx": "6f98160c7d697823944f26c4a25e0a1f19f70dee67b777e0298e5792a315d1bc",
+    "src/components/status-badge.tsx": "39545fab9f06a9de40a708506d82d1cedbf746ff3f016e524ecb8a476b0bcc60",
+    "src/components/ui/alert.tsx": "d69afac32ae7182cd425ee6684483abb5ccf22388f8e6721b59723aefa5a0b36",
+    "src/components/ui/badge.tsx": "b3244bcc807fafbc6f41a347cf4ce2462457bb34fa88229d1651972aee6ef167",
+    "src/components/ui/button.tsx": "14756ed6fd62a15e3e367b66d14d3c56067bb7a3a5d9c2c65d90c12473494598",
+    "src/components/ui/card.tsx": "d8113cbf964f8d1aadf2649d2944d8bbc6e3cfd49d36746f76868cbc4dde3cfe",
+    "src/components/ui/combobox.tsx": "c5a3a52c7ec1c4d8f13689e396d613a39b4c16cec56d72d6f26cda6caa14579a",
+    "src/components/ui/dialog.tsx": "5fb546395675f0e7291e771df207b0a04eb4fea1b75c3776052e2bca90cfbe65",
+    "src/components/ui/dropdown-menu.tsx": "2e093707d178ddf23411e87d049827a4f1a143c006b4b06a6daebe62e4b24dd8",
+    "src/components/ui/input.tsx": "f7d6ecff9a4d631feeaf401c02bb87e26ddb38131c55d15a43b9290747390847",
+    "src/components/ui/label.tsx": "7f19b8476658d25ff197c84030e58cd7395059d876a54630e025951e474ebdae",
+    "src/components/ui/separator.tsx": "75085bd84ff6965e4a356c53a4689799cabf65caa93c0bba064d5a0c6fa78f13",
+    "src/components/ui/sheet.tsx": "7f7745ef6ee7f2102d532170244e33b951bffadc3ddc8bd60737dbdf69e10792",
+    "src/components/ui/skeleton.tsx": "8110bba70d0cb9fe968c0b7bd092ad12258caef40b028b4a87f402bdab907faf",
+    "src/components/ui/sonner.tsx": "9f5b214ea042e2a8c3d99a2f5f1fd00c2d70e843879afb95a2988dcdd6f2a409",
+    "src/components/ui/table.tsx": "6f4ccc22019d096976ec7ea66530ceaafa36c9a0c0a73a472c09762d88b67833",
+    "src/components/ui/tabs.tsx": "fcc6af7fe5945e782f00940b01558ac78c6f272b857842f22e400e5fd7ba2a0f",
+    "src/components/ui/textarea.tsx": "58b58d84fc54ba5f4ca46937870c619349fd9eccc4d494250ac7bc73a94e05e9",
+    "src/components/ui/tooltip.tsx": "2cea2294d4947b88d815860f64e0b5e0eb47a59bde47cfd194aac2230c923865",
+    "src/lib/utils.ts": "7c8c3dfc0cdd370d44932828eb067ef771c8fe7996693221d5d4b90af6d54f2d",
+    "src/test/setup.ts": "dafb59ca9b69ecba77c6c38ab47ef7842b9af468eb773a95eaf7eef5b7ad632f"
+  }
+}
