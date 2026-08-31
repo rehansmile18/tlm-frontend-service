@@ -36,13 +36,15 @@ export interface LoginResult {
 // (src/types/domain.ts) exactly — covers the major real-world regional conventions: US, UK/EU/
 // Commonwealth/India, ISO 8601, German/Central-Eastern European dotted, dashed alternate, and
 // Japanese slashed.
-export const CALENDAR_FORMATS = ["MM/DD/YYYY", "DD/MM/YYYY", "YYYY-MM-DD", "DD.MM.YYYY", "DD-MM-YYYY", "YYYY/MM/DD"] as const;
-export type CalendarFormat = (typeof CALENDAR_FORMATS)[number];
+// Defined in format-core.ts (shared with the sibling frontend), re-exported here so domain call
+// sites keep importing it from one place.
+export { CALENDAR_FORMATS, TIME_FORMATS } from "./format-core";
+export type { CalendarFormat, TimeFormat } from "./format-core";
+import type { CalendarFormat, TimeFormat } from "./format-core";
 
 // Same override posture as CalendarFormat above, for the clock (12-hour vs 24-hour). Mirrors
 // TLM's own TIME_FORMATS (src/types/domain.ts) exactly.
-export const TIME_FORMATS = ["12h", "24h"] as const;
-export type TimeFormat = (typeof TIME_FORMATS)[number];
+
 
 export interface MeResult {
   userId: string;

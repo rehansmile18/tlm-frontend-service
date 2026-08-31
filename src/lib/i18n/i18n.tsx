@@ -35,7 +35,14 @@ function subscribeLocale(listener: () => void): () => void {
   return () => localeListeners.delete(listener);
 }
 
-function persistLocale(locale: Locale): void {
+/**
+ * Exported as well as exposed through the context's `setLocale`, because sign-in needs to apply
+ * the account's saved language from inside AuthProvider — which sits ABOVE I18nProvider in this
+ * app's tree and so cannot call useTranslation(). Notifying the listener set here is what makes
+ * that work: the change reaches every useSyncExternalStore subscriber regardless of where it was
+ * triggered from.
+ */
+export function persistLocale(locale: Locale): void {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(LOCALE_KEY, locale);
   for (const listener of localeListeners) listener();

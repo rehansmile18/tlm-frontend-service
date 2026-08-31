@@ -1,13 +1,9 @@
-// Session persistence. The JWT is a bearer token issued by TLM (the single auth authority for
-// every user of this app); we keep it in localStorage so a page reload stays logged in, and
-// mirror the richer SessionUser record resolved from TLM's login/me responses. This is a
-// client-only module — every accessor guards against server-side rendering. Pub/sub via a
-// listener Set lets the OTHER agent's auth.tsx drive React state off this store with
-// useSyncExternalStore.
+import { createAuthStore } from "./auth-store-core";
 
-const TOKEN_KEY = "tlmSiteOps.token";
-const USER_KEY = "tlmSiteOps.user";
-
+/**
+ * The session user this app stores. Richer than the sibling frontend's, because site-scoped
+ * authorization decisions (which sites a SITE_MANAGER may read) are made in the UI here.
+ */
 export interface SessionUser {
   userId: string;
   email: string;
@@ -17,64 +13,13 @@ export interface SessionUser {
   permissions: string[];
 }
 
-type Listener = () => void;
-const listeners = new Set<Listener>();
+// "tlmSiteOps.*" is already in users' browsers — changing the prefix would sign everyone out.
+const store = createAuthStore<SessionUser>("tlmSiteOps");
 
-export function subscribeSession(listener: Listener): () => void {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-function emit(): void {
-  for (const l of listeners) l();
-}
-
-export function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(TOKEN_KEY);
-}
-
-function safeParse(raw: string | null): SessionUser | null {
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as SessionUser;
-  } catch {
-    return null;
-  }
-}
-
-export function getUser(): SessionUser | null {
-  if (typeof window === "undefined") return null;
-  return safeParse(window.localStorage.getItem(USER_KEY));
-}
-
-// Cached snapshot for useSyncExternalStore: it requires a stable reference between calls when the
-// underlying value hasn't changed (React compares via Object.is and re-renders forever otherwise —
-// getUser() above re-parses JSON on every call, which is fine for a one-off read but not this), so
-// this only re-parses when the raw stored string actually differs.
-let cachedRaw: string | null = null;
-let cachedUser: SessionUser | null = null;
-
-export function getUserSnapshot(): SessionUser | null {
-  if (typeof window === "undefined") return null;
-  const raw = window.localStorage.getItem(USER_KEY);
-  if (raw !== cachedRaw) {
-    cachedRaw = raw;
-    cachedUser = safeParse(raw);
-  }
-  return cachedUser;
-}
-
-export function setSession(token: string, user: SessionUser): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(TOKEN_KEY, token);
-  window.localStorage.setItem(USER_KEY, JSON.stringify(user));
-  emit();
-}
-
-export function clearSession(): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(TOKEN_KEY);
-  window.localStorage.removeItem(USER_KEY);
-  emit();
-}
+export const subscribeSession = store.subscribeSession;
+export const getToken = store.getToken;
+export const getUser = store.getUser;
+export const getUserSnapshot = store.getUserSnapshot;
+export const getServerUserSnapshot = store.getServerUserSnapshot;
+export const setSession = store.setSession;
+export const clearSession = store.clearSession;

@@ -3,8 +3,10 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { I18nProvider, useTranslation } from "../i18n";
-import { AuthProvider } from "../../auth";
+import { AuthProvider, useAuth } from "../../auth";
 import { setSession, clearSession } from "../../auth-store";
+import { authApi } from "../../resources";
+import type { Locale } from "../i18n";
 
 // AuthProvider calls useRouter() (only used for logout's redirect, never exercised here) — no
 // AppRouterContext exists in this jsdom-only test environment, so it's mocked rather than pulling
@@ -15,6 +17,7 @@ vi.mock("next/navigation", () => ({
 
 function Probe() {
   const { locale, dir, t, setLocale, tOptional } = useTranslation();
+  const { login } = useAuth();
   return (
     <div>
       <span data-testid="locale">{locale}</span>
@@ -27,6 +30,7 @@ function Probe() {
       <button onClick={() => setLocale("ar")}>go-arabic</button>
       <button onClick={() => setLocale("es")}>go-spanish</button>
       <button onClick={() => setLocale("en")}>go-english</button>
+      <button onClick={() => void login("a@b.c", "pw")}>sign-in</button>
     </div>
   );
 }
@@ -163,6 +167,84 @@ describe("I18nProvider / useTranslation", () => {
       });
 
       expect(screen.getByTestId("nav-sites")).toHaveTextContent("Sites");
+    });
+  });
+
+  // The Profile page lets a user save a preferred language, but for a long time nothing applied it
+  // at sign-in — the setting silently did nothing in this app while the sibling frontend honoured
+  // it. AuthProvider sits above I18nProvider here, so the fix goes through the exported
+  // persistLocale rather than useTranslation(); these pin that it actually takes effect.
+  describe("the account's saved language at sign-in", () => {
+    function stubLogin(preferredLanguage: Locale | null) {
+      vi.spyOn(authApi, "login").mockResolvedValue({
+        token: "tok",
+        user: {
+          userId: "u1",
+          email: "a@b.c",
+          username: null,
+          role: "CLIENT_ADMIN",
+          clientId: "c1",
+          firstName: null,
+          lastName: null,
+          mobile: null,
+          preferredLanguage,
+          preferredDateFormat: null,
+          preferredTimeFormat: null,
+        },
+      });
+      vi.spyOn(authApi, "me").mockResolvedValue({
+        ...demoUser,
+        username: null,
+        status: "active",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        firstName: null,
+        lastName: null,
+        mobile: null,
+        avatarUrl: null,
+        preferredLanguage,
+        preferredDateFormat: null,
+        preferredTimeFormat: null,
+      });
+    }
+
+    it("switches to the saved language on sign-in", async () => {
+      stubLogin("es");
+      renderWithProviders(<Probe />);
+      expect(screen.getByTestId("locale")).toHaveTextContent("en");
+
+      await act(async () => {
+        screen.getByText("sign-in").click();
+      });
+
+      await waitFor(() => expect(screen.getByTestId("locale")).toHaveTextContent("es"));
+      expect(screen.getByTestId("nav-dashboard")).not.toHaveTextContent("Dashboard");
+    });
+
+    it("also applies direction for an RTL language", async () => {
+      stubLogin("ar");
+      renderWithProviders(<Probe />);
+
+      await act(async () => {
+        screen.getByText("sign-in").click();
+      });
+
+      await waitFor(() => expect(screen.getByTestId("dir")).toHaveTextContent("rtl"));
+    });
+
+    it("leaves the current locale alone when the account has no saved language", async () => {
+      stubLogin(null);
+      renderWithProviders(<Probe />);
+      await act(async () => {
+        screen.getByText("go-spanish").click();
+      });
+      expect(screen.getByTestId("locale")).toHaveTextContent("es");
+
+      await act(async () => {
+        screen.getByText("sign-in").click();
+      });
+
+      // Still Spanish — an account with no preference must not reset the user's own choice.
+      await waitFor(() => expect(screen.getByTestId("locale")).toHaveTextContent("es"));
     });
   });
 });

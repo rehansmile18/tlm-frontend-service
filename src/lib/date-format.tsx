@@ -8,8 +8,9 @@ import {
   formatDate as formatDateWith,
   formatDateTime as formatDateTimeWith,
   formatTime as formatTimeWith,
+  type CalendarFormat,
+  type TimeFormat,
 } from "./format";
-import type { CalendarFormat, TimeFormat } from "./resources";
 
 const DEFAULT_DATE_FORMAT: CalendarFormat = "MM/DD/YYYY";
 const DEFAULT_TIME_FORMAT: TimeFormat = "12h";
@@ -17,9 +18,9 @@ const DEFAULT_TIME_FORMAT: TimeFormat = "12h";
 interface DateFormatContextValue {
   calendarFormat: CalendarFormat;
   timeFormat: TimeFormat;
-  formatDate: (iso?: string | Date | null) => string;
-  formatDateTime: (iso?: string | Date | null) => string;
-  formatTime: (iso?: string | Date | null) => string;
+  formatDate: (value?: string | Date | null) => string;
+  formatDateTime: (value?: string | Date | null) => string;
+  formatTime: (value?: string | Date | null) => string;
 }
 
 const DateFormatContext = createContext<DateFormatContextValue | null>(null);
@@ -29,6 +30,9 @@ const DateFormatContext = createContext<DateFormatContextValue | null>(null);
  * preferredDateFormat/preferredTimeFormat (set on the Profile page) > their client's shared
  * calendarFormat/timeFormat (via GET /clients/me) > MM/DD/YYYY + 12h before either loads, or for a
  * PLATFORM_ADMIN with no single client.
+ *
+ * Both frontends resolve this identically and read the same saved preference, so a user who sets
+ * their format in one app sees it honoured in the other.
  */
 export function DateFormatProvider({ children }: { children: ReactNode }) {
   const { data: clientData } = useMyClient();
@@ -42,9 +46,9 @@ export function DateFormatProvider({ children }: { children: ReactNode }) {
     return {
       calendarFormat,
       timeFormat,
-      formatDate: (iso) => (iso ? formatDateWith(iso, datePattern) : "—"),
-      formatDateTime: (iso) => (iso ? formatDateTimeWith(iso, datePattern, timePattern) : "—"),
-      formatTime: (iso) => (iso ? formatTimeWith(iso, timePattern) : "—"),
+      formatDate: (value) => formatDateWith(value, datePattern),
+      formatDateTime: (value) => formatDateTimeWith(value, datePattern, timePattern),
+      formatTime: (value) => formatTimeWith(value, timePattern),
     };
   }, [calendarFormat, timeFormat]);
 
