@@ -27,8 +27,10 @@ import {
 import { queryKeys } from "@/lib/query-keys";
 import { useTranslation } from "@/lib/i18n/i18n";
 
+const MAX_EMPLOYEES_PER_RUN = 1000; // mirrors tlm-backend's processingProxy validator
+
 const processingFormSchema = z.object({
-  employeeIds: z.array(z.string()),
+  employeeIds: z.array(z.string()).min(1).max(MAX_EMPLOYEES_PER_RUN),
   asOfDate: z.string().min(1).refine((value) => isValid(parseISO(value)), { message: "Invalid date" }),
 });
 
@@ -134,7 +136,9 @@ export default function ProcessingPage() {
 
             <div className="space-y-1.5">
               <Label>{t("processing.employees")}</Label>
-              <p className="text-xs text-muted-foreground">{t("processing.employeesHint")}</p>
+              <p className="text-xs text-muted-foreground">
+                {t("processing.employeesHint", { max: String(MAX_EMPLOYEES_PER_RUN) })}
+              </p>
               {employeesQuery.isError ? (
                 <ErrorState error={employeesQuery.error} onRetry={() => employeesQuery.refetch()} />
               ) : employeesQuery.isLoading ? (
@@ -148,6 +152,27 @@ export default function ProcessingPage() {
                   control={control}
                   name="employeeIds"
                   render={({ field }) => (
+                    <>
+                    <div className="mb-2 flex items-center gap-3">
+                      <button
+                        type="button"
+                        className="text-xs font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline disabled:opacity-50"
+                        disabled={employees.length > MAX_EMPLOYEES_PER_RUN}
+                        onClick={() => field.onChange(employees.map((e) => e.employeeId))}
+                      >
+                        {t("processing.selectAll", { count: String(employees.length) })}
+                      </button>
+                      <button
+                        type="button"
+                        className="text-xs font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                        onClick={() => field.onChange([])}
+                      >
+                        {t("processing.clearSelection")}
+                      </button>
+                      <span className="ml-auto text-xs text-muted-foreground">
+                        {t("processing.selectedCount", { count: String(field.value.length) })}
+                      </span>
+                    </div>
                     <div className="max-h-64 space-y-2 overflow-y-auto rounded-lg border border-input p-3">
                       {employees.map((employee) => {
                         const checked = field.value.includes(employee.employeeId);
@@ -170,9 +195,13 @@ export default function ProcessingPage() {
                         );
                       })}
                     </div>
+                    </>
                   )}
                 />
               )}
+              {errors.employeeIds ? (
+                <p className="text-xs text-destructive">{t("processing.selectAtLeastOne")}</p>
+              ) : null}
             </div>
 
             <Button type="submit" disabled={mutation.isPending || !clientId}>
