@@ -14,6 +14,7 @@ import {
   ShieldCheckIcon,
   UserCircleIcon,
   UsersIcon,
+  WandSparklesIcon,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -38,6 +39,7 @@ export interface NavItem {
 // Flat list (mirrors tlm-frontend's own NAV shape, which has no section grouping either).
 export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboardIcon },
+  { href: "/setup", labelKey: "nav.setup", icon: WandSparklesIcon, roles: ["PLATFORM_ADMIN", "CLIENT_ADMIN"] },
   { href: "/employees", labelKey: "nav.employees", icon: UsersIcon, permissionKey: "employee:read" },
   { href: "/sites", labelKey: "nav.sites", icon: MapPinIcon, permissionKey: "site:read" },
   { href: "/tasks", labelKey: "nav.tasks", icon: ListChecksIcon, permissionKey: "task:read" },

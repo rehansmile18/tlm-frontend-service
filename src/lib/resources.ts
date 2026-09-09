@@ -152,16 +152,32 @@ export interface ClientRecord {
   enabledStates: string[];
   calendarFormat: CalendarFormat;
   timeFormat: TimeFormat;
+  // Regional display defaults every user under this client inherits. Distinct from
+  // PayPeriodConfig's own timezone/weekStartDay, which drive pay-period arithmetic.
+  defaultTimezone: string | null;
+  currency: string;
+  numberFormat: string;
+  displayWeekStartDay: number;
   moduleLabels: ModuleLabelOverrides | null;
+}
+
+/** Every field optional so one setting can be changed without restating the rest. */
+export interface UpdateClientBody {
+  moduleLabels?: ModuleLabelOverrides | null;
+  calendarFormat?: CalendarFormat;
+  timeFormat?: TimeFormat;
+  defaultTimezone?: string | null;
+  currency?: string;
+  numberFormat?: string;
+  displayWeekStartDay?: number;
 }
 
 export const clientsApi = {
   me: () => tlmFetch<{ client: ClientRecord | null }>("/clients/me"),
-  // Self-service — CLIENT_ADMIN customizing their own client's module labels.
-  updateMe: (body: { moduleLabels: ModuleLabelOverrides | null }) =>
-    tlmFetch<ClientRecord>("/clients/me", { method: "PATCH", body }),
+  // Self-service — CLIENT_ADMIN configuring their own client's terminology and regional defaults.
+  updateMe: (body: UpdateClientBody) => tlmFetch<ClientRecord>("/clients/me", { method: "PATCH", body }),
   // PLATFORM_ADMIN has no client of their own, so `updateMe` doesn't apply to them.
-  update: (id: string, body: { moduleLabels: ModuleLabelOverrides | null }) =>
+  update: (id: string, body: UpdateClientBody) =>
     tlmFetch<ClientRecord>(`/clients/${id}`, { method: "PATCH", body }),
   list: () => tlmFetch<{ items: ClientRecord[] }>("/clients"),
 };
@@ -341,6 +357,7 @@ export interface Site {
   name: string;
   timezone: string;
   location: Location | null;
+  costCentre: string | null;
   customFields: CustomFields | null;
   createdAt: string;
   updatedAt: string;
@@ -358,6 +375,7 @@ export interface CreateSiteBody {
   name: string;
   timezone: string;
   location?: Location | null;
+  costCentre?: string | null;
   customFields?: CustomFields | null;
 }
 
@@ -366,6 +384,7 @@ export type UpdateSiteBody = Partial<{
   name: string;
   timezone: string;
   location: Location | null;
+  costCentre: string | null;
   customFields: CustomFields | null;
 }>;
 
@@ -440,6 +459,8 @@ export interface PayPeriodConfig {
   payDateOffsetDays: number;
   payDateWeekendRule: "none" | "prior_business_day" | "next_business_day";
   payCalendarId: string | null;
+  cutoffDaysAfterPeriodEnd: number | null;
+  cutoffTime: string | null;
   producesHourlyLines: boolean;
   createdAt: string;
   updatedAt: string;
@@ -462,6 +483,8 @@ export interface CreatePayPeriodConfigBody {
   payDateOffsetDays?: number;
   payDateWeekendRule?: PayPeriodConfig["payDateWeekendRule"];
   payCalendarId?: string | null;
+  cutoffDaysAfterPeriodEnd?: number | null;
+  cutoffTime?: string | null;
   producesHourlyLines?: boolean;
 }
 
@@ -815,3 +838,150 @@ export interface PermissionsCatalog {
 export const permissionsApi = {
   catalog: () => backendFetch<PermissionsCatalog>("/permissions/catalog"),
 };
+
+// ---- Compliance rules (TLM) ----
+// The rules half of the platform lives in TLM, not tlm-backend, and its own dashboard is the
+// place to author policies. This app reads and composes them only for the guided setup flow: a
+// client admin picks from platform-curated GLOBAL policy templates, bundles them into a rule
+// group, publishes it and assigns it. That whole path is single-actor.
+//
+// Authoring a NEW policy deliberately is not here: policies are maker-checker (TLM refuses to let
+// the submitter approve their own — see policy.service.ts), so it cannot be completed by one
+// person and does not belong in a wizard that promises it can.
+
+export const POLICY_TYPES = [
+  "OVERTIME",
+  "MEAL_BREAK",
+  "REST_BREAK",
+  "SHIFT",
+  "SHIFT_DIFFERENTIAL",
+  "PAY_DIFFERENTIAL",
+  "NIGHT_DIFFERENTIAL",
+  "PAYGROUP",
+  "RATE",
+  "CA_MEAL_BREAK",
+] as const;
+export type PolicyType = (typeof POLICY_TYPES)[number];
+
+export const ASSIGNMENT_TARGET_TYPES = ["EMPLOYEE", "PAYGROUP", "LOCATION", "DEPARTMENT", "STATE"] as const;
+export type AssignmentTargetType = (typeof ASSIGNMENT_TARGET_TYPES)[number];
+
+export interface Policy {
+  _id: string;
+  policyId: string;
+  version: number;
+  scope: "global" | "client";
+  clientId: string | null;
+  policyType: PolicyType;
+  jurisdiction: { country: string; state: string | null } | null;
+  name: string;
+  description: string | null;
+  status: "draft" | "pending_approval" | "active" | "superseded" | "archived";
+  effectiveFrom: string;
+  effectiveTo: string | null;
+  rules: Record<string, unknown>;
+}
+
+export interface PolicyRef {
+  policyId: string;
+  policyType: PolicyType;
+  versionPin: "latest" | number;
+}
+
+export interface RuleGroup {
+  _id: string;
+  ruleGroupId: string;
+  clientId: string;
+  name: string;
+  description: string | null;
+  version: number;
+  status: "draft" | "active" | "superseded" | "archived";
+  effectiveFrom: string;
+  effectiveTo: string | null;
+  policyRefs: PolicyRef[];
+}
+
+export interface Assignment {
+  _id: string;
+  clientId: string;
+  ruleGroupId: string;
+  targetType: AssignmentTargetType;
+  targetIds: string[];
+  priority: number;
+  status: "active" | "scheduled" | "expired";
+  effectiveFrom: string;
+  effectiveTo: string | null;
+}
+
+export interface CreateRuleGroupBody {
+  clientId: string;
+  name: string;
+  description?: string;
+  effectiveFrom: string;
+  policyRefs: PolicyRef[];
+}
+
+export interface CreateAssignmentBody {
+  clientId: string;
+  ruleGroupId: string;
+  targetType: AssignmentTargetType;
+  targetIds: string[];
+  priority?: number;
+  effectiveFrom: string;
+  effectiveTo?: string | null;
+}
+
+export const policiesApi = {
+  // TLM scopes this to "global OR my own client" server-side, so a client admin sees the
+  // platform-curated templates alongside anything authored for them.
+  list: (params: { scope?: "global" | "client"; status?: string; policyType?: PolicyType; state?: string; pageSize?: number } = {}) =>
+    tlmFetch<Paginated<Policy>>("/policies", { query: { ...params } }),
+};
+
+export const ruleGroupsApi = {
+  list: (params: { clientId?: string; status?: string; pageSize?: number } = {}) =>
+    tlmFetch<Paginated<RuleGroup>>("/rule-groups", { query: { ...params } }),
+  create: (body: CreateRuleGroupBody) => tlmFetch<RuleGroup>("/rule-groups", { method: "POST", body }),
+  publish: (ruleGroupId: string) => tlmFetch<RuleGroup>(`/rule-groups/${ruleGroupId}/publish`, { method: "POST" }),
+};
+
+export const assignmentsApi = {
+  list: (params: { clientId?: string; ruleGroupId?: string; pageSize?: number } = {}) =>
+    tlmFetch<Paginated<Assignment>>("/assignments", { query: { ...params } }),
+  create: (body: CreateAssignmentBody) => tlmFetch<Assignment>("/assignments", { method: "POST", body }),
+};
+
+// ---- Setup readiness (tlm-backend) ----
+export type ReadinessSeverity = "blocked" | "attention";
+export type ReadinessStatus = "pass" | "attention" | "blocked";
+
+export interface ReadinessFinding {
+  code: string;
+  severity: ReadinessSeverity;
+  title: string;
+  count: number;
+  sample: string[];
+  fix: string;
+}
+
+export interface ReadinessStep {
+  step: string;
+  key: string;
+  title: string;
+  status: ReadinessStatus;
+  findings: ReadinessFinding[];
+}
+
+export interface ReadinessReport {
+  clientId: string;
+  generatedAt: string;
+  status: ReadinessStatus;
+  summary: { steps: number; pass: number; attention: number; blocked: number };
+  steps: ReadinessStep[];
+}
+
+export const setupApi = {
+  readiness: (clientId?: string) =>
+    backendFetch<ReadinessReport>("/setup/readiness", { query: { clientId } }),
+};
+

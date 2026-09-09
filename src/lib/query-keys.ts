@@ -51,4 +51,10 @@ export const queryKeys = {
 
   // Permissions catalog
   permissionsCatalog: ["permissions-catalog"] as const,
+
+  // Guided setup
+  setupReadiness: (clientId?: string) => ["setup-readiness", clientId ?? ""] as const,
+  policies: (params?: unknown) => ["policies", params ?? {}] as const,
+  ruleGroups: (params?: unknown) => ["rule-groups", params ?? {}] as const,
+  assignments: (params?: unknown) => ["assignments", params ?? {}] as const,
 };
