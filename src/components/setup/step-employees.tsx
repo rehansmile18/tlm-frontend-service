@@ -32,7 +32,7 @@ export function StepEmployees({ clientId, defaultTimezone }: { clientId: string;
 
   const [employeeId, setEmployeeId] = useState("");
   const [timezone, setTimezone] = useState(defaultTimezone ?? "");
-  const [payPeriodConfigId, setPayPeriodConfigId] = useState(NONE);
+  const [chosenPpc, setChosenPpc] = useState<string | null>(null);
   const [siteId, setSiteId] = useState(NONE);
   const [task, setTask] = useState(NONE);
   const [newTaskName, setNewTaskName] = useState("");
@@ -64,6 +64,13 @@ export function StepEmployees({ clientId, defaultTimezone }: { clientId: string;
   const tasks = tasksQuery.data?.items ?? [];
   const total = employeesQuery.data?.total ?? 0;
 
+  // Preselects the first pay cycle rather than "None". "None" is only correct for an employee
+  // whose GROUP supplies one — the rarer case — so defaulting to it meant the quickest path
+  // through this form produced an employee payroll cannot process, exactly what this step's own
+  // description warns about. Derived rather than synced into state by an effect, which would
+  // cascade renders (and which the lint rule rightly rejects).
+  const payPeriodConfigId = chosenPpc ?? configs[0]?._id ?? NONE;
+
   const mutation = useMutation({
     mutationFn: async () => {
       const employee = await employeesApi.create({
@@ -85,10 +92,31 @@ export function StepEmployees({ clientId, defaultTimezone }: { clientId: string;
       queryClient.invalidateQueries({ queryKey: ["setup-readiness"] });
       setAdding(false);
       setEmployeeId("");
+      setChosenPpc(null);
       toast.success(t("setup.employees.created"));
     },
     onError: (error) => toast.error(t("setup.employees.couldntCreate"), { description: humanizeError(error) }),
   });
+
+  // 2. Repair path for employees already in this state — the readiness finding named them but the
+  //    wizard offered no way to act on it, sending the user to another page mid-setup.
+  const [fixTarget, setFixTarget] = useState<string | null>(null);
+  const [fixConfigId, setFixConfigId] = useState(NONE);
+
+  const fixMutation = useMutation({
+    mutationFn: (employeeMongoId: string) =>
+      employeesApi.update(employeeMongoId, { payPeriodConfigId: fixConfigId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["setup-readiness"] });
+      setFixTarget(null);
+      setFixConfigId(NONE);
+      toast.success(t("setup.employees.payCycleAssigned"));
+    },
+    onError: (error) => toast.error(t("setup.employees.couldntAssignPayCycle"), { description: humanizeError(error) }),
+  });
+
+  const needsConfig = employees.filter((e) => e.status === "active" && !e.payPeriodConfigId && !e.employeeGroupId);
 
   const createTask = useMutation({
     mutationFn: () => tasksApi.create({ clientId, name: newTaskName.trim() }),
@@ -115,6 +143,59 @@ export function StepEmployees({ clientId, defaultTimezone }: { clientId: string;
         }))}
         emptyText={t("setup.employees.none")}
       />
+      {needsConfig.length > 0 && configs.length > 0 ? (
+        <div className="space-y-2 rounded-lg border-l-2 border-l-destructive bg-muted/40 p-3">
+          <p className="text-sm font-medium">{t("setup.employees.fixTitle")}</p>
+          <p className="text-xs text-muted-foreground">{t("setup.employees.fixHint")}</p>
+          {needsConfig.map((e) => (
+            <div key={e._id} className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-sm">{e.employeeId}</span>
+              {fixTarget === e._id ? (
+                <>
+                  <Combobox
+                    value={fixConfigId}
+                    onValueChange={setFixConfigId}
+                    wrapperClassName="min-w-48 flex-1"
+                    aria-label={t("setup.employees.payCycle")}
+                  >
+                    <ComboboxItem value={NONE}>{t("setup.employees.payCycleChoose")}</ComboboxItem>
+                    {configs.map((c) => (
+                      <ComboboxItem key={c._id} value={c._id}>
+                        {c.name}
+                      </ComboboxItem>
+                    ))}
+                  </Combobox>
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={!fixConfigId || fixMutation.isPending}
+                    onClick={() => fixMutation.mutate(e._id)}
+                  >
+                    {fixMutation.isPending ? <Loader2Icon className="size-4 animate-spin" /> : null}
+                    {t("setup.employees.assign")}
+                  </Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={() => setFixTarget(null)}>
+                    {t("common.cancel")}
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setFixTarget(e._id);
+                    setFixConfigId(configs[0]._id);
+                  }}
+                >
+                  {t("setup.employees.assignPayCycle")}
+                </Button>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : null}
+
       {total > employees.length ? (
         <p className="text-xs text-muted-foreground">{t("setup.employees.andMore", { count: String(total - employees.length) })}</p>
       ) : null}
@@ -139,7 +220,7 @@ export function StepEmployees({ clientId, defaultTimezone }: { clientId: string;
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="emp-ppc">{t("setup.employees.payCycle")}</Label>
-              <Combobox id="emp-ppc" value={payPeriodConfigId} onValueChange={setPayPeriodConfigId} disabled={noConfigs}>
+              <Combobox id="emp-ppc" value={payPeriodConfigId} onValueChange={setChosenPpc} disabled={noConfigs}>
                 <ComboboxItem value={NONE}>{t("setup.employees.payCycleNone")}</ComboboxItem>
                 {configs.map((c) => (
                   <ComboboxItem key={c._id} value={c._id}>

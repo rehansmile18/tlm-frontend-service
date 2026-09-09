@@ -71,9 +71,18 @@ export default function SetupPage() {
   // Organization, pay cycle, sites, employees, rules. Review is excluded deliberately: it reports
   // on the others rather than being a task of its own, so counting it would let progress read
   // 5/6 forever.
-  const doneCount =
-    (client?.defaultTimezone ? 1 : 0) +
-    ["payCycles", "locations", "employees"].filter((k) => stepByKey(k)?.status === "pass").length +
+  //
+  // Counts steps that are not BLOCKING rather than only spotless ones, so this number means the
+  // same thing as the go-live gate. Counting only "pass" made a non-blocking nit stall progress
+  // for good: repairing an employee's pay cycle left it merely unassigned to a site — attention,
+  // not blocked — and the bar sat at 3/5 while the review step correctly said payroll could run.
+  // The per-step badge still shows "Review" so the nit stays visible.
+  const readyCount =
+    1 + // organization defaults never block payroll; they are preferences
+    ["payCycles", "locations", "employees"].filter((k) => {
+      const status = stepByKey(k)?.status;
+      return status !== undefined && status !== "blocked";
+    }).length +
     (rulesReady ? 1 : 0);
 
   return (
@@ -106,14 +115,14 @@ export default function SetupPage() {
                 <div>
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("setup.progress")}</p>
                   <p className="text-2xl font-semibold tabular-nums">
-                    {doneCount}
+                    {readyCount}
                     <span className="text-base font-normal text-muted-foreground"> / {COUNTED_STEPS}</span>
                   </p>
                 </div>
                 <div className="h-1.5 min-w-40 flex-1 overflow-hidden rounded-full bg-muted">
                   <div
                     className="h-full rounded-full bg-primary transition-[width]"
-                    style={{ width: `${(doneCount / COUNTED_STEPS) * 100}%` }}
+                    style={{ width: `${(readyCount / COUNTED_STEPS) * 100}%` }}
                   />
                 </div>
               </CardContent>
