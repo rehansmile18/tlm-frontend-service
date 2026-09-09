@@ -1,7 +1,16 @@
 import type { TranslationKeys } from "./en";
 
 const es: TranslationKeys = {
+  status: {
+    active: "Activo",
+    inactive: "En pausa",
+    archived: "Eliminado",
+  },
   common: {
+    deleted: "{name} eliminado",
+    dismiss: "Descartar",
+    confirmDelete: "Confirmar eliminación",
+    deleteAria: "Eliminar {name}",
     save: "Guardar",
     saveChanges: "Guardar cambios",
     cancel: "Cancelar",
@@ -471,6 +480,13 @@ const es: TranslationKeys = {
     title: "Configuración guiada",
     description: "Configure todo lo que necesita la nómina, en orden, desde un solo lugar. Cada paso indica qué falta.",
     progress: "Pasos listos",
+    list: {
+      deleted: "Eliminado",
+      inactive: "en pausa",
+      confirmDelete: "¿Eliminar esto?",
+      confirmYes: "Eliminar",
+      deleteAria: "Eliminar {name}",
+    },
     import: {
       open: "Importación masiva de {entity}",
       title: "Importación masiva",

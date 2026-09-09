@@ -158,7 +158,10 @@ export function StepEmployees({ clientId, defaultTimezone }: { clientId: string;
           id: e._id,
           primary: e.employeeId,
           secondary: e.status === "active" ? e.timezone : t("setup.employees.inactive"),
+          status: e.status,
         }))}
+        onArchive={(id) => employeesApi.archive(id)}
+        invalidateKeys={["employees"]}
         emptyText={t("setup.employees.none")}
       />
       {needsConfig.length > 0 && configs.length > 0 ? (

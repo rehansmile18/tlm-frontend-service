@@ -1,7 +1,16 @@
 import type { TranslationKeys } from "./en";
 
 const ar: TranslationKeys = {
+  status: {
+    active: "نشط",
+    inactive: "موقوف",
+    archived: "محذوف",
+  },
   common: {
+    deleted: "تم حذف {name}",
+    dismiss: "تجاهل",
+    confirmDelete: "تأكيد الحذف",
+    deleteAria: "حذف {name}",
     save: "حفظ",
     saveChanges: "حفظ التغييرات",
     cancel: "إلغاء",
@@ -471,6 +480,13 @@ const ar: TranslationKeys = {
     title: "الإعداد الموجّه",
     description: "اضبط كل ما تحتاجه الرواتب، بالترتيب، من مكان واحد. كل خطوة تُخبرك بما ينقص.",
     progress: "الخطوات الجاهزة",
+    list: {
+      deleted: "تم الحذف",
+      inactive: "موقوف",
+      confirmDelete: "حذف هذا؟",
+      confirmYes: "حذف",
+      deleteAria: "حذف {name}",
+    },
     import: {
       open: "استيراد جماعي لـ {entity}",
       title: "الاستيراد الجماعي",

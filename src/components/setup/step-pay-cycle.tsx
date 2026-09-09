@@ -95,7 +95,10 @@ export function StepPayCycle({ clientId, defaultTimezone }: { clientId: string; 
           id: c._id,
           primary: c.name,
           secondary: `${t(`setup.cadence.${c.cadence}`)} · ${c.timezone}`,
+          status: c.status,
         }))}
+        onArchive={(id) => payPeriodConfigsApi.archive(id)}
+        invalidateKeys={["pay-period-configs"]}
         emptyText={t("setup.payCycle.none")}
       />
 

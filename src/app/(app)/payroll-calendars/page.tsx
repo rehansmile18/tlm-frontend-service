@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
+import { ArchiveAction, ResourceStatusBadge } from "@/components/resource-row-actions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -86,6 +87,8 @@ export default function PayrollCalendarsPage() {
                   <TableHead>{t("payrollCalendars.name")}</TableHead>
                   <TableHead>{t("payrollCalendars.rows")}</TableHead>
                   <TableHead>{t("common.createdAt")}</TableHead>
+                  <TableHead>{t("common.status")}</TableHead>
+                  <TableHead className="w-px" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -98,6 +101,18 @@ export default function PayrollCalendarsPage() {
                     <TableCell className="font-medium">{calendar.name}</TableCell>
                     <TableCell className="text-muted-foreground">{calendar.rows.length}</TableCell>
                     <TableCell className="text-muted-foreground">{formatDate(calendar.createdAt)}</TableCell>
+                    <TableCell>
+                      <ResourceStatusBadge status={calendar.status} />
+                    </TableCell>
+                    <TableCell className="text-end">
+                      {canWrite ? (
+                        <ArchiveAction
+                          name={calendar.name}
+                          onArchive={() => payrollCalendarsApi.archive(calendar._id)}
+                          invalidateKeys={["payroll-calendars"]}
+                        />
+                      ) : null}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

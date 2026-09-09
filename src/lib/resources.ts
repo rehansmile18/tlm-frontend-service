@@ -6,6 +6,13 @@ import type { Locale } from "./i18n/i18n";
 // owns every operational resource — Employee, EmployeeGroup, Site, Task, PayPeriodConfig,
 // PayrollCalendar, Punch, EmployeeSiteAssignment, Schedule, and the Timesheet/Processing proxies.
 
+/**
+ * Every master-data resource shares these three states. "archived" is what deletion means — the
+ * record is kept so payroll can still explain past periods — and is only reachable through the
+ * guarded archive endpoint, never by patching status.
+ */
+export type ResourceStatus = "active" | "inactive" | "archived";
+
 export interface Paginated<T> {
   items: T[];
   total: number;
@@ -279,6 +286,7 @@ export type UpdateEmployeeSiteAssignmentBody = Partial<{
 }>;
 
 export const employeesApi = {
+  archive: (id: string) => backendFetch(`/employees/${id}/archive`, { method: "POST" }),
   list: (params: EmployeeListParams = {}) => backendFetch<Paginated<Employee>>("/employees", { query: { ...params } }),
   get: (id: string) => backendFetch<Employee>(`/employees/${id}`),
   create: (body: CreateEmployeeBody) => backendFetch<Employee>("/employees", { method: "POST", body }),
@@ -359,6 +367,7 @@ export interface Site {
   location: Location | null;
   costCentre: string | null;
   customFields: CustomFields | null;
+  status: ResourceStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -389,6 +398,7 @@ export type UpdateSiteBody = Partial<{
 }>;
 
 export const sitesApi = {
+  archive: (id: string) => backendFetch(`/sites/${id}/archive`, { method: "POST" }),
   list: (params: SiteListParams = {}) => backendFetch<Paginated<Site>>("/sites", { query: { ...params } }),
   get: (id: string) => backendFetch<Site>(`/sites/${id}`),
   create: (body: CreateSiteBody) => backendFetch<Site>("/sites", { method: "POST", body }),
@@ -418,6 +428,7 @@ export interface Task {
   clientId: string;
   name: string;
   code: string | null;
+  status: ResourceStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -440,6 +451,7 @@ export type UpdateTaskBody = Partial<{
 }>;
 
 export const tasksApi = {
+  archive: (id: string) => backendFetch(`/tasks/${id}/archive`, { method: "POST" }),
   list: (params: TaskListParams = {}) => backendFetch<Paginated<Task>>("/tasks", { query: { ...params } }),
   get: (id: string) => backendFetch<Task>(`/tasks/${id}`),
   create: (body: CreateTaskBody) => backendFetch<Task>("/tasks", { method: "POST", body }),
@@ -462,6 +474,7 @@ export interface PayPeriodConfig {
   cutoffDaysAfterPeriodEnd: number | null;
   cutoffTime: string | null;
   producesHourlyLines: boolean;
+  status: ResourceStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -491,6 +504,7 @@ export interface CreatePayPeriodConfigBody {
 export type UpdatePayPeriodConfigBody = Partial<CreatePayPeriodConfigBody>;
 
 export const payPeriodConfigsApi = {
+  archive: (id: string) => backendFetch(`/pay-period-configs/${id}/archive`, { method: "POST" }),
   list: (params: PayPeriodConfigListParams = {}) =>
     backendFetch<Paginated<PayPeriodConfig>>("/pay-period-configs", { query: { ...params } }),
   get: (id: string) => backendFetch<PayPeriodConfig>(`/pay-period-configs/${id}`),
@@ -511,6 +525,7 @@ export interface PayrollCalendar {
   clientId: string;
   name: string;
   rows: PayrollCalendarRow[];
+  status: ResourceStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -533,6 +548,7 @@ export type UpdatePayrollCalendarBody = Partial<{
 }>;
 
 export const payrollCalendarsApi = {
+  archive: (id: string) => backendFetch(`/payroll-calendars/${id}/archive`, { method: "POST" }),
   list: (params: PayrollCalendarListParams = {}) =>
     backendFetch<Paginated<PayrollCalendar>>("/payroll-calendars", { query: { ...params } }),
   get: (id: string) => backendFetch<PayrollCalendar>(`/payroll-calendars/${id}`),

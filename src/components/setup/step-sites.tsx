@@ -91,7 +91,10 @@ export function StepSites({ clientId, defaultTimezone }: { clientId: string; def
           id: s._id,
           primary: `${s.siteId} · ${s.name}`,
           secondary: s.location?.state ? `${s.location.state} · ${s.timezone}` : s.timezone,
+          status: s.status,
         }))}
+        onArchive={(id) => sitesApi.archive(id)}
+        invalidateKeys={["sites"]}
         emptyText={t("setup.sites.none")}
       />
 

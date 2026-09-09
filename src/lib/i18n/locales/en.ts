@@ -1,7 +1,16 @@
 // Source of truth for translation keys — es.ts and ar.ts are typed against this shape, so a
 // missing key in either is a compile error, not a silent English fallback in production.
 const en = {
+  status: {
+    active: "Active",
+    inactive: "Paused",
+    archived: "Deleted",
+  },
   common: {
+    deleted: "Deleted {name}",
+    dismiss: "Dismiss",
+    confirmDelete: "Confirm delete",
+    deleteAria: "Delete {name}",
     save: "Save",
     saveChanges: "Save changes",
     cancel: "Cancel",
@@ -471,6 +480,13 @@ const en = {
     title: "Guided setup",
     description: "Configure everything payroll needs, in order, from one place. Each step tells you what is still missing.",
     progress: "Steps ready",
+    list: {
+      deleted: "Deleted",
+      inactive: "paused",
+      confirmDelete: "Delete this?",
+      confirmYes: "Delete",
+      deleteAria: "Delete {name}",
+    },
     import: {
       open: "Bulk import {entity}",
       title: "Bulk import",

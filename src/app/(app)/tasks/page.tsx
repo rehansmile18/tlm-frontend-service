@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
+import { ArchiveAction, ResourceStatusBadge } from "@/components/resource-row-actions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -106,6 +107,8 @@ export default function TasksPage() {
                   <TableHead>{t("tasks.name")}</TableHead>
                   <TableHead>{t("tasks.code")}</TableHead>
                   <TableHead>{t("common.createdAt")}</TableHead>
+                  <TableHead>{t("common.status")}</TableHead>
+                  <TableHead className="w-px" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -114,6 +117,18 @@ export default function TasksPage() {
                     <TableCell className="font-medium">{task.name}</TableCell>
                     <TableCell className="text-muted-foreground">{task.code ?? "—"}</TableCell>
                     <TableCell className="text-muted-foreground">{formatDate(task.createdAt)}</TableCell>
+                    <TableCell>
+                      <ResourceStatusBadge status={task.status} />
+                    </TableCell>
+                    <TableCell className="text-end">
+                      {canWrite ? (
+                        <ArchiveAction
+                          name={task.name}
+                          onArchive={() => tasksApi.archive(task._id)}
+                          invalidateKeys={["tasks"]}
+                        />
+                      ) : null}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

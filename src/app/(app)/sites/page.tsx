@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
+import { ArchiveAction, ResourceStatusBadge } from "@/components/resource-row-actions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -107,6 +108,8 @@ export default function SitesPage() {
                   <TableHead>{t("sites.name")}</TableHead>
                   <TableHead>{t("sites.timezone")}</TableHead>
                   <TableHead>{t("common.createdAt")}</TableHead>
+                  <TableHead>{t("common.status")}</TableHead>
+                  <TableHead className="w-px" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -116,6 +119,18 @@ export default function SitesPage() {
                     <TableCell className="text-muted-foreground">{site.name}</TableCell>
                     <TableCell className="text-muted-foreground">{site.timezone}</TableCell>
                     <TableCell className="text-muted-foreground">{formatDate(site.createdAt)}</TableCell>
+                    <TableCell>
+                      <ResourceStatusBadge status={site.status} />
+                    </TableCell>
+                    <TableCell className="text-end">
+                      {canWrite ? (
+                        <ArchiveAction
+                          name={`${site.siteId} · ${site.name}`}
+                          onArchive={() => sitesApi.archive(site._id)}
+                          invalidateKeys={["sites"]}
+                        />
+                      ) : null}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

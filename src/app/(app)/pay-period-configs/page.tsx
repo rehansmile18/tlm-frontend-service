@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
+import { ArchiveAction, ResourceStatusBadge } from "@/components/resource-row-actions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -87,6 +88,8 @@ export default function PayPeriodConfigsPage() {
                   <TableHead>{t("payPeriodConfigs.cadence")}</TableHead>
                   <TableHead>{t("payPeriodConfigs.timezone")}</TableHead>
                   <TableHead>{t("common.createdAt")}</TableHead>
+                  <TableHead>{t("common.status")}</TableHead>
+                  <TableHead className="w-px" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -102,6 +105,18 @@ export default function PayPeriodConfigsPage() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">{config.timezone}</TableCell>
                     <TableCell className="text-muted-foreground">{formatDate(config.createdAt)}</TableCell>
+                    <TableCell>
+                      <ResourceStatusBadge status={config.status} />
+                    </TableCell>
+                    <TableCell className="text-end">
+                      {canWrite ? (
+                        <ArchiveAction
+                          name={config.name}
+                          onArchive={() => payPeriodConfigsApi.archive(config._id)}
+                          invalidateKeys={["pay-period-configs"]}
+                        />
+                      ) : null}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
