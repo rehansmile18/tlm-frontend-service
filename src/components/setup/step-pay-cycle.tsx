@@ -14,9 +14,22 @@ import { payPeriodConfigsApi, type PayPeriodConfig } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { useTranslation } from "@/lib/i18n/i18n";
 import { ExistingList } from "./existing-list";
+import { BulkImportSection } from "./bulk-import-section";
+import type { ColumnSpec } from "@/lib/bulk-import";
 
 const CADENCES = ["weekly", "biweekly", "semi_monthly", "monthly", "daily", "salaried"] as const;
 const WEEK_DAYS = [0, 1, 2, 3, 4, 5, 6] as const;
+
+const PAY_CYCLE_COLUMNS: ColumnSpec[] = [
+  { key: "name", header: "Name", required: true, example: "Weekly warehouse" },
+  { key: "cadence", header: "Cadence", required: true, example: "weekly", hint: "weekly, biweekly, semi_monthly, monthly, daily or salaried" },
+  { key: "timezone", header: "Time Zone", required: true, example: "America/Los_Angeles", aliases: ["tz"] },
+  { key: "weekStartDay", header: "Week Start Day", example: "1", hint: "0=Sunday..6=Saturday; required for weekly and biweekly" },
+  { key: "anchorDate", header: "Anchor Date", example: "2026-01-05", hint: "YYYY-MM-DD; required for biweekly" },
+  { key: "payDateOffsetDays", header: "Pay Days After Period End", example: "5" },
+  { key: "cutoffDaysAfterPeriodEnd", header: "Cutoff Days After Period End", example: "5", hint: "Set together with Cutoff Time, or leave both blank" },
+  { key: "cutoffTime", header: "Cutoff Time", example: "14:00", hint: "24-hour HH:mm, local to the Time Zone" },
+];
 
 /**
  * A pay period config defines when each period starts and ends. Nothing downstream works without
@@ -84,6 +97,43 @@ export function StepPayCycle({ clientId, defaultTimezone }: { clientId: string; 
           secondary: `${t(`setup.cadence.${c.cadence}`)} · ${c.timezone}`,
         }))}
         emptyText={t("setup.payCycle.none")}
+      />
+
+      <BulkImportSection
+        entityKey="payCycle"
+        entityLabel={t("setup.payCycle.title")}
+        columns={PAY_CYCLE_COLUMNS}
+        templateName="pay-cycles-template"
+        labelOf={(row) => row.name}
+        invalidateKeys={["pay-period-configs"]}
+        toBody={(row) => {
+          if (!row.name || !row.cadence || !row.timezone) {
+            throw new Error("Name, Cadence and Time Zone are all required");
+          }
+          const cadence = row.cadence.toLowerCase().replace(/[\s-]+/g, "_");
+          if (!(CADENCES as readonly string[]).includes(cadence)) {
+            throw new Error(`Unknown cadence "${row.cadence}" — use one of ${CADENCES.join(", ")}`);
+          }
+          const needsWeek = cadence === "weekly" || cadence === "biweekly";
+          if (needsWeek && !row.weekStartDay) throw new Error(`Week Start Day is required for cadence "${cadence}"`);
+          if (cadence === "biweekly" && !row.anchorDate) throw new Error("Anchor Date is required for cadence \"biweekly\"");
+          const hasCutoff = Boolean(row.cutoffDaysAfterPeriodEnd && row.cutoffTime);
+          if (Boolean(row.cutoffDaysAfterPeriodEnd) !== Boolean(row.cutoffTime)) {
+            throw new Error("Set Cutoff Days and Cutoff Time together, or leave both blank");
+          }
+          return {
+            clientId,
+            name: row.name,
+            cadence: cadence as PayPeriodConfig["cadence"],
+            timezone: row.timezone,
+            weekStartDay: needsWeek ? Number(row.weekStartDay) : null,
+            anchorDate: cadence === "biweekly" ? row.anchorDate : null,
+            payDateOffsetDays: row.payDateOffsetDays ? Number(row.payDateOffsetDays) : 0,
+            cutoffDaysAfterPeriodEnd: hasCutoff ? Number(row.cutoffDaysAfterPeriodEnd) : null,
+            cutoffTime: hasCutoff ? row.cutoffTime : null,
+          };
+        }}
+        create={(body) => payPeriodConfigsApi.create(body)}
       />
 
       {adding ? (

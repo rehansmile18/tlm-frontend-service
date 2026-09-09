@@ -32,7 +32,7 @@
     "src/components/ui/textarea.tsx": "58b58d84fc54ba5f4ca46937870c619349fd9eccc4d494250ac7bc73a94e05e9",
     "src/components/ui/tooltip.tsx": "2cea2294d4947b88d815860f64e0b5e0eb47a59bde47cfd194aac2230c923865",
     "src/components/user-avatar.tsx": "540857c7b6f0cfea141cd256fcbe56b518f4d536de4efc6a2e9033642cf905ea",
-    "src/lib/api-core.ts": "e76cad1be89e4ef6b2138facadd249af165d9b1f9d75c5aaed5d8310b6d035cc",
+    "src/lib/api-core.ts": "a8b435d414ec04ca284c5b5549a6bd40bc3192140338cb237ba12b2b56148188",
     "src/lib/auth-store-core.ts": "63c02a37106a300dceda61ba6b22b28939a4971570855dc9071160979542f972",
     "src/lib/avatar.ts": "022e48546bebd6a1bf89de77111c04b0c07ae854397150a12dfaea4420288fe4",
     "src/lib/date-format.tsx": "116da367c17c325ea5ad57e3224f6377a704fe9b7874245a60e91f2d8190ec63",

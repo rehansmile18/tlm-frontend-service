@@ -13,6 +13,18 @@ import { sitesApi } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { useTranslation } from "@/lib/i18n/i18n";
 import { ExistingList } from "./existing-list";
+import { BulkImportSection } from "./bulk-import-section";
+import type { ColumnSpec } from "@/lib/bulk-import";
+
+const SITE_COLUMNS: ColumnSpec[] = [
+  { key: "siteId", header: "Site Code", required: true, example: "DC-LAS", aliases: ["code", "site id"], hint: "Your own reference; punches and rule assignments use it" },
+  { key: "name", header: "Site Name", required: true, example: "Las Vegas Distribution Center" },
+  { key: "timezone", header: "Time Zone", required: true, example: "America/Los_Angeles", aliases: ["tz"], hint: "IANA zone, e.g. America/Los_Angeles" },
+  { key: "costCentre", header: "Cost Centre", example: "CC-4410", aliases: ["cost center", "costcode"] },
+  { key: "city", header: "City", example: "Las Vegas" },
+  { key: "state", header: "State", example: "NV", hint: "Selects state pay rules" },
+  { key: "country", header: "Country", example: "US", hint: "ISO 2-letter code" },
+];
 
 /**
  * A site's state is what selects its state-specific pay rules in TLM, so the address is collected
@@ -81,6 +93,36 @@ export function StepSites({ clientId, defaultTimezone }: { clientId: string; def
           secondary: s.location?.state ? `${s.location.state} · ${s.timezone}` : s.timezone,
         }))}
         emptyText={t("setup.sites.none")}
+      />
+
+      <BulkImportSection
+        entityKey="sites"
+        entityLabel={t("setup.sites.title")}
+        columns={SITE_COLUMNS}
+        templateName="sites-template"
+        labelOf={(row) => row.siteId}
+        invalidateKeys={["sites"]}
+        toBody={(row) => {
+          if (!row.siteId || !row.name || !row.timezone) {
+            throw new Error("Site Code, Site Name and Time Zone are all required");
+          }
+          return {
+            clientId,
+            siteId: row.siteId,
+            name: row.name,
+            timezone: row.timezone,
+            costCentre: row.costCentre || null,
+            location: {
+              addressLine1: null,
+              addressLine2: null,
+              city: row.city || null,
+              state: row.state ? row.state.toUpperCase() : null,
+              country: row.country ? row.country.toUpperCase() : null,
+              postalCode: null,
+            },
+          };
+        }}
+        create={(body) => sitesApi.create(body)}
       />
 
       {adding ? (
