@@ -156,7 +156,7 @@ export function BulkImportSection<T>({
   }
 
   return (
-    <div className="space-y-3 rounded-lg border border-dashed p-4">
+    <div className="w-full space-y-3 rounded-lg border border-dashed p-4">
       <div className="flex items-start gap-2">
         <FileSpreadsheetIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
         <div className="min-w-0 flex-1">

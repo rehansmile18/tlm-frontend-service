@@ -95,36 +95,6 @@ export function StepSites({ clientId, defaultTimezone }: { clientId: string; def
         emptyText={t("setup.sites.none")}
       />
 
-      <BulkImportSection
-        entityKey="sites"
-        entityLabel={t("setup.sites.title")}
-        columns={SITE_COLUMNS}
-        templateName="sites-template"
-        labelOf={(row) => row.siteId}
-        invalidateKeys={["sites"]}
-        toBody={(row) => {
-          if (!row.siteId || !row.name || !row.timezone) {
-            throw new Error("Site Code, Site Name and Time Zone are all required");
-          }
-          return {
-            clientId,
-            siteId: row.siteId,
-            name: row.name,
-            timezone: row.timezone,
-            costCentre: row.costCentre || null,
-            location: {
-              addressLine1: null,
-              addressLine2: null,
-              city: row.city || null,
-              state: row.state ? row.state.toUpperCase() : null,
-              country: row.country ? row.country.toUpperCase() : null,
-              postalCode: null,
-            },
-          };
-        }}
-        create={(body) => sitesApi.create(body)}
-      />
-
       {adding ? (
         <form
           onSubmit={(e) => {
@@ -179,10 +149,41 @@ export function StepSites({ clientId, defaultTimezone }: { clientId: string; def
           </div>
         </form>
       ) : (
-        <Button type="button" variant="outline" onClick={() => setAdding(true)}>
-          <PlusIcon className="size-4" />
-          {t("setup.sites.add")}
-        </Button>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+          <Button type="button" variant="outline" onClick={() => setAdding(true)}>
+            <PlusIcon className="size-4" />
+            {t("setup.sites.add")}
+          </Button>
+          <BulkImportSection
+            entityKey="sites"
+            entityLabel={t("setup.sites.title")}
+            columns={SITE_COLUMNS}
+            templateName="sites-template"
+            labelOf={(row) => row.siteId}
+            invalidateKeys={["sites"]}
+            toBody={(row) => {
+              if (!row.siteId || !row.name || !row.timezone) {
+                throw new Error("Site Code, Site Name and Time Zone are all required");
+              }
+              return {
+                clientId,
+                siteId: row.siteId,
+                name: row.name,
+                timezone: row.timezone,
+                costCentre: row.costCentre || null,
+                location: {
+                  addressLine1: null,
+                  addressLine2: null,
+                  city: row.city || null,
+                  state: row.state ? row.state.toUpperCase() : null,
+                  country: row.country ? row.country.toUpperCase() : null,
+                  postalCode: null,
+                },
+              };
+            }}
+            create={(body) => sitesApi.create(body)}
+          />
+        </div>
       )}
     </div>
   );

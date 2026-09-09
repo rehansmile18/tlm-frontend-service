@@ -218,59 +218,6 @@ export function StepEmployees({ clientId, defaultTimezone }: { clientId: string;
         <p className="text-xs text-muted-foreground">{t("setup.employees.andMore", { count: String(total - employees.length) })}</p>
       ) : null}
 
-      <BulkImportSection
-        entityKey="employees"
-        entityLabel={t("setup.employees.title")}
-        columns={EMPLOYEE_COLUMNS}
-        templateName="employees-template"
-        labelOf={(row) => row.employeeId}
-        invalidateKeys={["employees"]}
-        toBody={(row) => {
-          if (!row.employeeId || !row.timezone) throw new Error("Employee ID and Time Zone are both required");
-
-          let payPeriodConfigId: string | null = null;
-          if (row.payCycle) {
-            const resolved = configByName.get(row.payCycle.trim().toLowerCase());
-            if (!resolved) {
-              throw new Error(
-                `No pay cycle named "${row.payCycle}". Available: ${configs.map((c) => c.name).join(", ") || "none yet"}`
-              );
-            }
-            payPeriodConfigId = resolved;
-          }
-          if (row.siteId) {
-            if (!siteIds.has(row.siteId)) throw new Error(`No site with code "${row.siteId}"`);
-            if (!row.task) throw new Error("Task is required when a Site Code is given");
-            if (!taskNames.has(row.task)) {
-              throw new Error(`No task named "${row.task}". Available: ${tasks.map((tk) => tk.name).join(", ") || "none yet"}`);
-            }
-          }
-          const status = (row.status || "active").toLowerCase();
-          if (status !== "active" && status !== "inactive") {
-            throw new Error(`Status must be "active" or "inactive", not "${row.status}"`);
-          }
-
-          return {
-            clientId,
-            employeeId: row.employeeId,
-            timezone: row.timezone,
-            payPeriodConfigId,
-            status: status as "active" | "inactive",
-            // Carried alongside so create() can do the follow-up assignment.
-            _siteId: row.siteId || null,
-            _task: row.task || null,
-          };
-        }}
-        create={async (body) => {
-          const { _siteId, _task, ...employeeBody } = body;
-          const employee = await employeesApi.create(employeeBody);
-          if (_siteId && _task) {
-            await employeesApi.assignSite(employee._id, { siteId: _siteId, task: _task, isPrimary: true });
-          }
-          return employee;
-        }}
-      />
-
       {adding ? (
         <form
           onSubmit={(e) => {
@@ -364,10 +311,64 @@ export function StepEmployees({ clientId, defaultTimezone }: { clientId: string;
           </div>
         </form>
       ) : (
-        <Button type="button" variant="outline" onClick={() => setAdding(true)}>
-          <PlusIcon className="size-4" />
-          {t("setup.employees.add")}
-        </Button>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+          <Button type="button" variant="outline" onClick={() => setAdding(true)}>
+            <PlusIcon className="size-4" />
+            {t("setup.employees.add")}
+          </Button>
+          <BulkImportSection
+            entityKey="employees"
+            entityLabel={t("setup.employees.title")}
+            columns={EMPLOYEE_COLUMNS}
+            templateName="employees-template"
+            labelOf={(row) => row.employeeId}
+            invalidateKeys={["employees"]}
+            toBody={(row) => {
+              if (!row.employeeId || !row.timezone) throw new Error("Employee ID and Time Zone are both required");
+
+              let payPeriodConfigId: string | null = null;
+              if (row.payCycle) {
+                const resolved = configByName.get(row.payCycle.trim().toLowerCase());
+                if (!resolved) {
+                  throw new Error(
+                    `No pay cycle named "${row.payCycle}". Available: ${configs.map((c) => c.name).join(", ") || "none yet"}`
+                  );
+                }
+                payPeriodConfigId = resolved;
+              }
+              if (row.siteId) {
+                if (!siteIds.has(row.siteId)) throw new Error(`No site with code "${row.siteId}"`);
+                if (!row.task) throw new Error("Task is required when a Site Code is given");
+                if (!taskNames.has(row.task)) {
+                  throw new Error(`No task named "${row.task}". Available: ${tasks.map((tk) => tk.name).join(", ") || "none yet"}`);
+                }
+              }
+              const status = (row.status || "active").toLowerCase();
+              if (status !== "active" && status !== "inactive") {
+                throw new Error(`Status must be "active" or "inactive", not "${row.status}"`);
+              }
+
+              return {
+                clientId,
+                employeeId: row.employeeId,
+                timezone: row.timezone,
+                payPeriodConfigId,
+                status: status as "active" | "inactive",
+                // Carried alongside so create() can do the follow-up assignment.
+                _siteId: row.siteId || null,
+                _task: row.task || null,
+              };
+            }}
+            create={async (body) => {
+              const { _siteId, _task, ...employeeBody } = body;
+              const employee = await employeesApi.create(employeeBody);
+              if (_siteId && _task) {
+                await employeesApi.assignSite(employee._id, { siteId: _siteId, task: _task, isPrimary: true });
+              }
+              return employee;
+            }}
+          />
+        </div>
       )}
     </div>
   );

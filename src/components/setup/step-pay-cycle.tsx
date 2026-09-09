@@ -99,43 +99,6 @@ export function StepPayCycle({ clientId, defaultTimezone }: { clientId: string; 
         emptyText={t("setup.payCycle.none")}
       />
 
-      <BulkImportSection
-        entityKey="payCycle"
-        entityLabel={t("setup.payCycle.title")}
-        columns={PAY_CYCLE_COLUMNS}
-        templateName="pay-cycles-template"
-        labelOf={(row) => row.name}
-        invalidateKeys={["pay-period-configs"]}
-        toBody={(row) => {
-          if (!row.name || !row.cadence || !row.timezone) {
-            throw new Error("Name, Cadence and Time Zone are all required");
-          }
-          const cadence = row.cadence.toLowerCase().replace(/[\s-]+/g, "_");
-          if (!(CADENCES as readonly string[]).includes(cadence)) {
-            throw new Error(`Unknown cadence "${row.cadence}" — use one of ${CADENCES.join(", ")}`);
-          }
-          const needsWeek = cadence === "weekly" || cadence === "biweekly";
-          if (needsWeek && !row.weekStartDay) throw new Error(`Week Start Day is required for cadence "${cadence}"`);
-          if (cadence === "biweekly" && !row.anchorDate) throw new Error("Anchor Date is required for cadence \"biweekly\"");
-          const hasCutoff = Boolean(row.cutoffDaysAfterPeriodEnd && row.cutoffTime);
-          if (Boolean(row.cutoffDaysAfterPeriodEnd) !== Boolean(row.cutoffTime)) {
-            throw new Error("Set Cutoff Days and Cutoff Time together, or leave both blank");
-          }
-          return {
-            clientId,
-            name: row.name,
-            cadence: cadence as PayPeriodConfig["cadence"],
-            timezone: row.timezone,
-            weekStartDay: needsWeek ? Number(row.weekStartDay) : null,
-            anchorDate: cadence === "biweekly" ? row.anchorDate : null,
-            payDateOffsetDays: row.payDateOffsetDays ? Number(row.payDateOffsetDays) : 0,
-            cutoffDaysAfterPeriodEnd: hasCutoff ? Number(row.cutoffDaysAfterPeriodEnd) : null,
-            cutoffTime: hasCutoff ? row.cutoffTime : null,
-          };
-        }}
-        create={(body) => payPeriodConfigsApi.create(body)}
-      />
-
       {adding ? (
         <form
           onSubmit={(e) => {
@@ -215,10 +178,48 @@ export function StepPayCycle({ clientId, defaultTimezone }: { clientId: string; 
           </div>
         </form>
       ) : (
-        <Button type="button" variant="outline" onClick={() => setAdding(true)}>
-          <PlusIcon className="size-4" />
-          {t("setup.payCycle.add")}
-        </Button>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+          <Button type="button" variant="outline" onClick={() => setAdding(true)}>
+            <PlusIcon className="size-4" />
+            {t("setup.payCycle.add")}
+          </Button>
+          <BulkImportSection
+            entityKey="payCycle"
+            entityLabel={t("setup.payCycle.title")}
+            columns={PAY_CYCLE_COLUMNS}
+            templateName="pay-cycles-template"
+            labelOf={(row) => row.name}
+            invalidateKeys={["pay-period-configs"]}
+            toBody={(row) => {
+              if (!row.name || !row.cadence || !row.timezone) {
+                throw new Error("Name, Cadence and Time Zone are all required");
+              }
+              const cadence = row.cadence.toLowerCase().replace(/[\s-]+/g, "_");
+              if (!(CADENCES as readonly string[]).includes(cadence)) {
+                throw new Error(`Unknown cadence "${row.cadence}" — use one of ${CADENCES.join(", ")}`);
+              }
+              const needsWeek = cadence === "weekly" || cadence === "biweekly";
+              if (needsWeek && !row.weekStartDay) throw new Error(`Week Start Day is required for cadence "${cadence}"`);
+              if (cadence === "biweekly" && !row.anchorDate) throw new Error("Anchor Date is required for cadence \"biweekly\"");
+              const hasCutoff = Boolean(row.cutoffDaysAfterPeriodEnd && row.cutoffTime);
+              if (Boolean(row.cutoffDaysAfterPeriodEnd) !== Boolean(row.cutoffTime)) {
+                throw new Error("Set Cutoff Days and Cutoff Time together, or leave both blank");
+              }
+              return {
+                clientId,
+                name: row.name,
+                cadence: cadence as PayPeriodConfig["cadence"],
+                timezone: row.timezone,
+                weekStartDay: needsWeek ? Number(row.weekStartDay) : null,
+                anchorDate: cadence === "biweekly" ? row.anchorDate : null,
+                payDateOffsetDays: row.payDateOffsetDays ? Number(row.payDateOffsetDays) : 0,
+                cutoffDaysAfterPeriodEnd: hasCutoff ? Number(row.cutoffDaysAfterPeriodEnd) : null,
+                cutoffTime: hasCutoff ? row.cutoffTime : null,
+              };
+            }}
+            create={(body) => payPeriodConfigsApi.create(body)}
+          />
+        </div>
       )}
     </div>
   );
