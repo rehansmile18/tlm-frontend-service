@@ -212,7 +212,17 @@ export function buildCsvTemplate(columns: ColumnSpec[]): Blob {
   return new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8" });
 }
 
-export async function buildXlsxTemplate(columns: ColumnSpec[], sheetName: string): Promise<Blob> {
+/** Valid values for a column, written into the template so they don't have to be memorised. */
+export interface ReferenceList {
+  title: string;
+  values: string[];
+}
+
+export async function buildXlsxTemplate(
+  columns: ColumnSpec[],
+  sheetName: string,
+  references: ReferenceList[] = []
+): Promise<Blob> {
   const ExcelJS = await import("exceljs");
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet(sheetName.slice(0, 31)); // Excel's sheet-name limit
@@ -232,6 +242,21 @@ export async function buildXlsxTemplate(columns: ColumnSpec[], sheetName: string
     const note = [col.required ? "Required" : "Optional", col.hint].filter(Boolean).join(" — ");
     cell.note = note;
   });
+
+  // A second sheet listing this client's actual valid values. The employee template asks for a
+  // pay cycle and site BY NAME, and without this the only way to learn the accepted names is to
+  // guess, submit, and read the errors.
+  const populated = references.filter((r) => r.values.length > 0);
+  if (populated.length > 0) {
+    const ref = workbook.addWorksheet("Reference");
+    ref.addRow(populated.map((r) => r.title));
+    ref.getRow(1).font = { bold: true };
+    const depth = Math.max(...populated.map((r) => r.values.length));
+    for (let i = 0; i < depth; i++) ref.addRow(populated.map((r) => r.values[i] ?? ""));
+    ref.columns = populated.map((r) => ({
+      width: Math.max(r.title.length, ...r.values.map((v) => v.length), 12) + 4,
+    }));
+  }
 
   const buffer = await workbook.xlsx.writeBuffer();
   return new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });

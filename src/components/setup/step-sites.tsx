@@ -164,6 +164,7 @@ export function StepSites({ clientId, defaultTimezone }: { clientId: string; def
             templateName="sites-template"
             labelOf={(row) => row.siteId}
             invalidateKeys={["sites"]}
+            existingKeys={sites.map((s) => s.siteId)}
             toBody={(row) => {
               if (!row.siteId || !row.name || !row.timezone) {
                 throw new Error("Site Code, Site Name and Time Zone are all required");

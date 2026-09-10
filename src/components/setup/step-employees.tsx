@@ -35,6 +35,10 @@ const EMPLOYEE_COLUMNS: ColumnSpec[] = [
  * pay period config is the single most common way a payroll run fails. The site assignment is
  * optional because it genuinely is — processing works from whichever site the punches carry, and
  * the readiness report treats a missing assignment as attention rather than a blocker.
+ *
+ * The import template asks for a pay cycle, site and task BY NAME, since nobody hand-types Mongo
+ * ids into a spreadsheet — so the accepted names are written into the workbook's Reference sheet
+ * and travel with the file, rather than having to be guessed and corrected from error messages.
  */
 export function StepEmployees({ clientId, defaultTimezone }: { clientId: string; defaultTimezone: string | null }) {
   const { t } = useTranslation();
@@ -326,6 +330,12 @@ export function StepEmployees({ clientId, defaultTimezone }: { clientId: string;
             templateName="employees-template"
             labelOf={(row) => row.employeeId}
             invalidateKeys={["employees"]}
+            existingKeys={employees.map((e) => e.employeeId)}
+            references={[
+              { title: "Pay Cycle", values: configs.map((c) => c.name) },
+              { title: "Site Code", values: sites.map((s) => s.siteId) },
+              { title: "Task", values: tasks.map((tk) => tk.name) },
+            ]}
             toBody={(row) => {
               if (!row.employeeId || !row.timezone) throw new Error("Employee ID and Time Zone are both required");
 

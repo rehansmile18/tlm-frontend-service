@@ -193,6 +193,7 @@ export function StepPayCycle({ clientId, defaultTimezone }: { clientId: string; 
             templateName="pay-cycles-template"
             labelOf={(row) => row.name}
             invalidateKeys={["pay-period-configs"]}
+            existingKeys={configs.map((c) => c.name)}
             toBody={(row) => {
               if (!row.name || !row.cadence || !row.timezone) {
                 throw new Error("Name, Cadence and Time Zone are all required");

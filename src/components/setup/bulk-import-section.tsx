@@ -15,6 +15,7 @@ import {
   parseImportFile,
   type ColumnSpec,
   type ParsedSheet,
+  type ReferenceList,
 } from "@/lib/bulk-import";
 import { useTranslation } from "@/lib/i18n/i18n";
 
@@ -50,6 +51,8 @@ export function BulkImportSection<T>({
   labelOf,
   create,
   invalidateKeys,
+  existingKeys = [],
+  references = [],
 }: {
   /** Used for the file input id and result keys. */
   entityKey: string;
@@ -63,6 +66,10 @@ export function BulkImportSection<T>({
   labelOf: (row: Record<string, string>) => string;
   create: (body: T) => Promise<unknown>;
   invalidateKeys: string[];
+  /** Values that already exist, so a clash is caught in the preview instead of on the server. */
+  existingKeys?: string[];
+  /** Valid values written into the Excel template's Reference sheet. */
+  references?: ReferenceList[];
 }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -74,7 +81,13 @@ export function BulkImportSection<T>({
   const [parseError, setParseError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [results, setResults] = useState<RowResult[] | null>(null);
+  // What the DISPLAYED results came from — reading `validateOnly` directly would relabel a real
+  // import the moment the user ticked the box afterwards.
+  const [checkedOnly, setCheckedOnly] = useState(false);
   const [progress, setProgress] = useState(0);
+  // Checking without writing matters most where there is no undo: importing 200 wrong rows and
+  // then discovering it leaves 200 records to archive one at a time.
+  const [validateOnly, setValidateOnly] = useState(false);
 
   function reset() {
     setParsed(null);
@@ -101,11 +114,12 @@ export function BulkImportSection<T>({
     }
   }
 
-  async function runImport() {
+  async function runImport(subset?: Record<string, string>[]) {
     if (!parsed) return;
     setBusy(true);
     setProgress(0);
-    const rows = parsed.rows;
+    const rows = subset ?? parsed.rows;
+    const existingSet = new Set(existingKeys);
     const collected: RowResult[] = new Array(rows.length);
     let cursor = 0;
 
@@ -117,8 +131,18 @@ export function BulkImportSection<T>({
         try {
           // toBody throws for a row that is wrong on its face, so an obviously bad row costs no
           // round trip and reports the reason immediately.
-          await create(toBody(row));
-          collected[index] = { index, row, label, status: "ok" };
+          const body = toBody(row);
+          if (validateOnly) {
+            // A local check can only catch what is knowable without the server: required fields
+            // and shapes via toBody, plus a clash with something that already exists. It cannot
+            // catch server-side rules like whether a time zone is real, so the result is reported
+            // as "would" rather than as a verdict.
+            if (existingSet.has(label)) throw new Error(t("setup.import.wouldClash"));
+            collected[index] = { index, row, label, status: "ok" };
+          } else {
+            await create(body);
+            collected[index] = { index, row, label, status: "ok" };
+          }
         } catch (error) {
           collected[index] = { index, row, label, status: "failed", error: humanizeError(error) };
         }
@@ -129,18 +153,38 @@ export function BulkImportSection<T>({
     await Promise.all(Array.from({ length: Math.min(CONCURRENCY, rows.length) }, worker));
 
     setResults(collected);
+    setCheckedOnly(validateOnly);
     setBusy(false);
-    for (const key of invalidateKeys) queryClient.invalidateQueries({ queryKey: [key] });
-    queryClient.invalidateQueries({ queryKey: ["setup-readiness"] });
+    if (!validateOnly) {
+      for (const key of invalidateKeys) queryClient.invalidateQueries({ queryKey: [key] });
+      queryClient.invalidateQueries({ queryKey: ["setup-readiness"] });
+    }
 
     const ok = collected.filter((r) => r.status === "ok").length;
     const failed = collected.length - ok;
-    if (failed === 0) toast.success(t("setup.import.allImported", { count: String(ok) }));
+    if (validateOnly) {
+      if (failed === 0) toast.success(t("setup.import.checkedClean", { count: String(ok) }));
+      else toast.warning(t("setup.import.checkedProblems", { count: String(failed) }));
+    } else if (failed === 0) toast.success(t("setup.import.allImported", { count: String(ok) }));
     else if (ok === 0) toast.error(t("setup.import.noneImported", { count: String(failed) }));
     else toast.warning(t("setup.import.partial", { ok: String(ok), failed: String(failed) }));
   }
 
   const failures = (results ?? []).filter((r) => r.status === "failed");
+
+  // Two kinds of clash, both worth naming before any request is sent: a row that collides with a
+  // record that already exists, and rows that collide with each other inside the same file.
+  const existing = new Set(existingKeys);
+  const seen = new Set<string>();
+  const clashesExisting: string[] = [];
+  const clashesInFile: string[] = [];
+  for (const row of parsed?.rows ?? []) {
+    const key = labelOf(row);
+    if (!key) continue;
+    if (existing.has(key)) clashesExisting.push(key);
+    if (seen.has(key)) clashesInFile.push(key);
+    seen.add(key);
+  }
 
   if (!open) {
     return (
@@ -185,7 +229,7 @@ export function BulkImportSection<T>({
           type="button"
           variant="outline"
           size="sm"
-          onClick={async () => downloadBlob(await buildXlsxTemplate(columns, templateName), `${templateName}.xlsx`)}
+          onClick={async () => downloadBlob(await buildXlsxTemplate(columns, templateName, references), `${templateName}.xlsx`)}
         >
           <DownloadIcon className="size-3.5" />
           {t("setup.import.templateXlsx")}
@@ -261,11 +305,40 @@ export function BulkImportSection<T>({
             <p className="text-xs text-muted-foreground">{t("setup.import.previewNote", { count: String(parsed.rows.length - 3) })}</p>
           ) : null}
 
-          <Button type="button" size="sm" disabled={busy || parsed.missingColumns.length > 0} onClick={runImport}>
+          {clashesExisting.length > 0 ? (
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+              {t("setup.import.clashExisting", {
+                count: String(clashesExisting.length),
+                names: clashesExisting.slice(0, 5).join(", "),
+              })}
+            </p>
+          ) : null}
+          {clashesInFile.length > 0 ? (
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+              {t("setup.import.clashInFile", {
+                count: String(clashesInFile.length),
+                names: clashesInFile.slice(0, 5).join(", "),
+              })}
+            </p>
+          ) : null}
+
+          <label className="flex items-center gap-2 text-xs text-muted-foreground">
+            <input
+              type="checkbox"
+              className="size-3.5 rounded border-input accent-primary"
+              checked={validateOnly}
+              onChange={(e) => setValidateOnly(e.target.checked)}
+            />
+            {t("setup.import.validateOnly")}
+          </label>
+
+          <Button type="button" size="sm" disabled={busy || parsed.missingColumns.length > 0} onClick={() => runImport()}>
             {busy ? <Loader2Icon className="size-4 animate-spin" /> : null}
             {busy
               ? t("setup.import.importing", { done: String(progress), total: String(parsed.rows.length) })
-              : t("setup.import.importRows", { count: String(parsed.rows.length) })}
+              : validateOnly
+                ? t("setup.import.checkRows", { count: String(parsed.rows.length) })
+                : t("setup.import.importRows", { count: String(parsed.rows.length) })}
           </Button>
         </div>
       ) : null}
@@ -273,11 +346,12 @@ export function BulkImportSection<T>({
       {results ? (
         <div className="space-y-2 rounded-lg border p-3">
           <p className="text-sm font-medium">
-            {t("setup.import.resultSummary", {
+            {t(checkedOnly ? "setup.import.checkSummary" : "setup.import.resultSummary", {
               ok: String(results.length - failures.length),
               failed: String(failures.length),
             })}
           </p>
+          {checkedOnly ? <p className="text-xs text-muted-foreground">{t("setup.import.checkCaveat")}</p> : null}
           <ul className="max-h-48 space-y-1 overflow-y-auto text-xs">
             {results.map((r) => (
               <li key={r.index} className="flex items-start gap-1.5">
@@ -309,6 +383,22 @@ export function BulkImportSection<T>({
               >
                 <DownloadIcon className="size-3.5" />
                 {t("setup.import.downloadFailures", { count: String(failures.length) })}
+              </Button>
+            ) : null}
+            {failures.length > 0 ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={busy}
+                onClick={() => {
+                  // Re-runs just the failures, so fixing a transient problem does not mean
+                  // re-uploading the whole file and re-creating everything that already worked.
+                  setValidateOnly(false);
+                  runImport(failures.map((f) => f.row));
+                }}
+              >
+                {t("setup.import.retryFailed", { count: String(failures.length) })}
               </Button>
             ) : null}
             <Button type="button" variant="ghost" size="sm" onClick={reset}>
