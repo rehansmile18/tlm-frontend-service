@@ -484,6 +484,7 @@ const es: TranslationKeys = {
     title: "Configuración guiada",
     description: "Configure todo lo que necesita la nómina, en orden, desde un solo lugar. Cada paso indica qué falta.",
     progress: "Pasos listos",
+    continueTo: "Continuar a {step}",
     list: {
       deleted: "Eliminado",
       inactive: "en pausa",

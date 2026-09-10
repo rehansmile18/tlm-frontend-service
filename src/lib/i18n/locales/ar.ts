@@ -484,6 +484,7 @@ const ar: TranslationKeys = {
     title: "الإعداد الموجّه",
     description: "اضبط كل ما تحتاجه الرواتب، بالترتيب، من مكان واحد. كل خطوة تُخبرك بما ينقص.",
     progress: "الخطوات الجاهزة",
+    continueTo: "المتابعة إلى {step}",
     list: {
       deleted: "تم الحذف",
       inactive: "موقوف",

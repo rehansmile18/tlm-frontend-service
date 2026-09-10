@@ -34,6 +34,9 @@ export function SetupStepCard({
   state,
   summary,
   defaultOpen,
+  open: controlledOpen,
+  onOpenChange,
+  footer,
   children,
 }: {
   index: number;
@@ -43,10 +46,24 @@ export function SetupStepCard({
   /** One line of current fact, e.g. "3 sites". Shown collapsed, so progress is visible unopened. */
   summary?: string;
   defaultOpen?: boolean;
+  /**
+   * Optional controlled mode. Supplied together, these let a parent steer which step is open —
+   * used to walk the user forward from one step to the next. Left out, the card manages itself,
+   * so every existing usage is unaffected.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Rendered under the body, e.g. a "continue to the next step" action. */
+  footer?: ReactNode;
   children: ReactNode;
 }) {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(Boolean(defaultOpen));
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(Boolean(defaultOpen));
+  const open = controlledOpen ?? uncontrolledOpen;
+  const toggle = () => {
+    if (onOpenChange) onOpenChange(!open);
+    else setUncontrolledOpen((v) => !v);
+  };
   const Icon = STATE_ICON[state];
 
   return (
@@ -54,7 +71,7 @@ export function SetupStepCard({
       <CardContent className="p-0">
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          onClick={toggle}
           aria-expanded={open}
           className="flex w-full items-start gap-4 px-5 py-4 text-left"
         >
@@ -82,7 +99,12 @@ export function SetupStepCard({
           </span>
           <ChevronDownIcon className={`mt-1 size-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
         </button>
-        {open ? <div className="border-t px-5 py-4">{children}</div> : null}
+        {open ? (
+          <div className="border-t px-5 py-4">
+            {children}
+            {footer ? <div className="mt-4 border-t pt-3">{footer}</div> : null}
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );

@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { ArrowRightIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/page-header";
@@ -67,6 +69,14 @@ export default function SetupPage() {
   const rulesReady = activeGroups.length > 0 && assignments.length > 0;
 
   const stepByKey = (key: string) => report?.steps.find((s) => s.key === key);
+
+  // Which step is expanded. Lifted out of the cards so finishing one can open the next: the flow
+  // previously ended each step with the user scrolling and guessing what came after.
+  const [openStep, setOpenStep] = useState<number | null>(null);
+  const stepProps = (index: number, autoOpen: boolean) => ({
+    open: openStep === null ? autoOpen : openStep === index,
+    onOpenChange: (next: boolean) => setOpenStep(next ? index : -1),
+  });
 
   // Organization, pay cycle, sites, employees, rules. Review is excluded deliberately: it reports
   // on the others rather than being a task of its own, so counting it would let progress read
@@ -135,6 +145,17 @@ export default function SetupPage() {
               title={t("setup.organization.title")}
               description={t("setup.organization.description")}
               state={client.defaultTimezone ? "done" : "attention"}
+              {...stepProps(1, false)}
+              footer={
+                <button
+                  type="button"
+                  onClick={() => setOpenStep(2)}
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+                >
+                  {t("setup.continueTo", { step: t("setup.payCycle.title") })}
+                  <ArrowRightIcon className="size-4" />
+                </button>
+              }
               summary={t("setup.organization.summary", {
                 date: client.calendarFormat,
                 currency: client.currency ?? "USD",
@@ -150,7 +171,17 @@ export default function SetupPage() {
             title={t("setup.payCycle.title")}
             description={t("setup.payCycle.description")}
             state={stateFor(stepByKey("payCycles"))}
-            defaultOpen={stateFor(stepByKey("payCycles")) === "blocked"}
+            {...stepProps(2, stateFor(stepByKey("payCycles")) === "blocked")}
+            footer={
+              <button
+                type="button"
+                onClick={() => setOpenStep(3)}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                {t("setup.continueTo", { step: t("setup.sites.title") })}
+                <ArrowRightIcon className="size-4" />
+              </button>
+            }
           >
             <SetupFindings findings={stepByKey("payCycles")?.findings ?? []} />
             <StepPayCycle clientId={clientId} defaultTimezone={client?.defaultTimezone ?? null} />
@@ -161,7 +192,17 @@ export default function SetupPage() {
             title={t("setup.sites.title")}
             description={t("setup.sites.description")}
             state={stateFor(stepByKey("locations"))}
-            defaultOpen={stateFor(stepByKey("locations")) === "blocked"}
+            {...stepProps(3, stateFor(stepByKey("locations")) === "blocked")}
+            footer={
+              <button
+                type="button"
+                onClick={() => setOpenStep(4)}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                {t("setup.continueTo", { step: t("setup.employees.title") })}
+                <ArrowRightIcon className="size-4" />
+              </button>
+            }
           >
             <SetupFindings findings={stepByKey("locations")?.findings ?? []} />
             <StepSites clientId={clientId} defaultTimezone={client?.defaultTimezone ?? null} />
@@ -172,7 +213,17 @@ export default function SetupPage() {
             title={t("setup.employees.title")}
             description={t("setup.employees.description")}
             state={stateFor(stepByKey("employees"))}
-            defaultOpen={stateFor(stepByKey("employees")) === "blocked"}
+            {...stepProps(4, stateFor(stepByKey("employees")) === "blocked")}
+            footer={
+              <button
+                type="button"
+                onClick={() => setOpenStep(5)}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                {t("setup.continueTo", { step: t("setup.rules.title") })}
+                <ArrowRightIcon className="size-4" />
+              </button>
+            }
           >
             <SetupFindings findings={stepByKey("employees")?.findings ?? []} />
             <StepEmployees clientId={clientId} defaultTimezone={client?.defaultTimezone ?? null} />
@@ -183,7 +234,17 @@ export default function SetupPage() {
             title={t("setup.rules.title")}
             description={t("setup.rules.description")}
             state={rulesReady ? "done" : "blocked"}
-            defaultOpen={!rulesReady}
+            {...stepProps(5, !rulesReady)}
+            footer={
+              <button
+                type="button"
+                onClick={() => setOpenStep(6)}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                {t("setup.continueTo", { step: t("setup.review.title") })}
+                <ArrowRightIcon className="size-4" />
+              </button>
+            }
             summary={
               rulesReady
                 ? t("setup.rules.summary", { groups: String(activeGroups.length), assignments: String(assignments.length) })

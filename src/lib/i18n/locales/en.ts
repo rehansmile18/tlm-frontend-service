@@ -484,6 +484,7 @@ const en = {
     title: "Guided setup",
     description: "Configure everything payroll needs, in order, from one place. Each step tells you what is still missing.",
     progress: "Steps ready",
+    continueTo: "Continue to {step}",
     list: {
       deleted: "Deleted",
       inactive: "paused",
