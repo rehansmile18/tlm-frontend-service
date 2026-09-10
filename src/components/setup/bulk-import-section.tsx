@@ -263,6 +263,17 @@ export function BulkImportSection<T>({
         </p>
       ) : null}
 
+      <p aria-live="polite" className="sr-only">
+        {busy && parsed
+          ? t("setup.import.importing", { done: String(progress), total: String(parsed.rows.length) })
+          : results
+            ? t(checkedOnly ? "setup.import.checkSummary" : "setup.import.resultSummary", {
+                ok: String(results.length - failures.length),
+                failed: String(failures.length),
+              })
+            : ""}
+      </p>
+
       {parsed && !results ? (
         <div className="space-y-2 rounded-lg border bg-muted/20 p-3">
           <p className="text-sm font-medium">{t("setup.import.readyToImport", { count: String(parsed.rows.length) })}</p>

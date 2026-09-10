@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
@@ -61,6 +61,13 @@ export function ArchiveAction({
   const queryClient = useQueryClient();
   const [confirming, setConfirming] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
+  const confirmRef = useRef<HTMLButtonElement>(null);
+
+  // The trigger is replaced by the confirmation, so without this focus falls back to the body and
+  // a keyboard user has to tab in from the top of the page to answer their own prompt.
+  useEffect(() => {
+    if (confirming) confirmRef.current?.focus();
+  }, [confirming]);
 
   const archive = useMutation({
     mutationFn: onArchive,
@@ -80,7 +87,9 @@ export function ArchiveAction({
   if (refusal) {
     return (
       <span className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-        <span className="max-w-xs text-xs text-destructive">{refusal}</span>
+        <span role="alert" className="max-w-xs text-xs text-destructive">
+          {refusal}
+        </span>
         <Button type="button" size="sm" variant="ghost" onClick={() => setRefusal(null)}>
           {t("common.dismiss")}
         </Button>
@@ -91,7 +100,7 @@ export function ArchiveAction({
   if (confirming) {
     return (
       <span className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-        <Button type="button" size="sm" variant="destructive" disabled={archive.isPending} onClick={() => archive.mutate()}>
+        <Button ref={confirmRef} type="button" size="sm" variant="destructive" disabled={archive.isPending} onClick={() => archive.mutate()}>
           {archive.isPending ? <Loader2Icon className="size-3.5 animate-spin" /> : null}
           {t("common.confirmDelete")}
         </Button>

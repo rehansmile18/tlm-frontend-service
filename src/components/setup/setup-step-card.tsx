@@ -65,6 +65,7 @@ export function SetupStepCard({
     else setUncontrolledOpen((v) => !v);
   };
   const Icon = STATE_ICON[state];
+  const panelId = `setup-step-${index}-panel`;
 
   return (
     <Card className={state === "blocked" ? "border-destructive/40" : undefined}>
@@ -73,6 +74,7 @@ export function SetupStepCard({
           type="button"
           onClick={toggle}
           aria-expanded={open}
+          aria-controls={panelId}
           className="flex w-full items-start gap-4 px-5 py-4 text-left"
         >
           <span
@@ -100,7 +102,7 @@ export function SetupStepCard({
           <ChevronDownIcon className={`mt-1 size-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
         </button>
         {open ? (
-          <div className="border-t px-5 py-4">
+          <div id={panelId} role="region" aria-label={title} className="border-t px-5 py-4">
             {children}
             {footer ? <div className="mt-4 border-t pt-3">{footer}</div> : null}
           </div>
