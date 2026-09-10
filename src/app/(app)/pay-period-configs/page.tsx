@@ -7,6 +7,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { ArchiveAction, ResourceStatusBadge } from "@/components/resource-row-actions";
+import { BulkArchiveBar } from "@/components/bulk-archive-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,6 +29,7 @@ export default function PayPeriodConfigsPage() {
   const canWrite = hasPermission(user, "payPeriodConfig:write");
 
   const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState<string[]>([]);
 
   // TODO: PLATFORM_ADMIN has no clientId of their own — this scopes the list to "no client"
   // (i.e. backend's own default) until a client picker exists for that role.
@@ -88,6 +90,7 @@ export default function PayPeriodConfigsPage() {
                   <TableHead>{t("payPeriodConfigs.cadence")}</TableHead>
                   <TableHead>{t("payPeriodConfigs.timezone")}</TableHead>
                   <TableHead>{t("common.createdAt")}</TableHead>
+                  <TableHead className="w-px" />
                   <TableHead>{t("common.status")}</TableHead>
                   <TableHead className="w-px" />
                 </TableRow>
@@ -105,6 +108,19 @@ export default function PayPeriodConfigsPage() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">{config.timezone}</TableCell>
                     <TableCell className="text-muted-foreground">{formatDate(config.createdAt)}</TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        aria-label={t("common.selectRow", { name: config.name })}
+                        className="size-4 rounded border-input accent-primary"
+                        checked={selected.includes(config._id)}
+                        onChange={() =>
+                          setSelected((prev) =>
+                            prev.includes(config._id) ? prev.filter((s) => s !== config._id) : [...prev, config._id]
+                          )
+                        }
+                      />
+                    </TableCell>
                     <TableCell>
                       <ResourceStatusBadge status={config.status} />
                     </TableCell>
@@ -138,6 +154,16 @@ export default function PayPeriodConfigsPage() {
           </div>
         </div>
       ) : null}
+      <BulkArchiveBar
+        targets={selected
+          .map((id) => items.find((c) => c._id === id))
+          .filter((r) => r !== undefined)
+          .map((c) => ({ id: c._id, name: c.name }))}
+        onArchive={(id) => payPeriodConfigsApi.archive(id)}
+        invalidateKeys={["pay-period-configs"]}
+        onClear={() => setSelected([])}
+      />
+
     </>
   );
 }

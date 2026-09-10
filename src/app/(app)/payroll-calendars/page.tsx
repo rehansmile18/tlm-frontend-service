@@ -7,6 +7,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { ArchiveAction, ResourceStatusBadge } from "@/components/resource-row-actions";
+import { BulkArchiveBar } from "@/components/bulk-archive-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,6 +29,7 @@ export default function PayrollCalendarsPage() {
   const canWrite = hasPermission(user, "payrollCalendar:write");
 
   const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState<string[]>([]);
 
   // TODO: PLATFORM_ADMIN has no clientId of their own — this scopes the list to "no client"
   // (i.e. backend's own default) until a client picker exists for that role.
@@ -87,6 +89,7 @@ export default function PayrollCalendarsPage() {
                   <TableHead>{t("payrollCalendars.name")}</TableHead>
                   <TableHead>{t("payrollCalendars.rows")}</TableHead>
                   <TableHead>{t("common.createdAt")}</TableHead>
+                  <TableHead className="w-px" />
                   <TableHead>{t("common.status")}</TableHead>
                   <TableHead className="w-px" />
                 </TableRow>
@@ -101,6 +104,19 @@ export default function PayrollCalendarsPage() {
                     <TableCell className="font-medium">{calendar.name}</TableCell>
                     <TableCell className="text-muted-foreground">{calendar.rows.length}</TableCell>
                     <TableCell className="text-muted-foreground">{formatDate(calendar.createdAt)}</TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        aria-label={t("common.selectRow", { name: calendar.name })}
+                        className="size-4 rounded border-input accent-primary"
+                        checked={selected.includes(calendar._id)}
+                        onChange={() =>
+                          setSelected((prev) =>
+                            prev.includes(calendar._id) ? prev.filter((s) => s !== calendar._id) : [...prev, calendar._id]
+                          )
+                        }
+                      />
+                    </TableCell>
                     <TableCell>
                       <ResourceStatusBadge status={calendar.status} />
                     </TableCell>
@@ -134,6 +150,16 @@ export default function PayrollCalendarsPage() {
           </div>
         </div>
       ) : null}
+      <BulkArchiveBar
+        targets={selected
+          .map((id) => items.find((c) => c._id === id))
+          .filter((r) => r !== undefined)
+          .map((c) => ({ id: c._id, name: c.name }))}
+        onArchive={(id) => payrollCalendarsApi.archive(id)}
+        invalidateKeys={["payroll-calendars"]}
+        onClear={() => setSelected([])}
+      />
+
     </>
   );
 }

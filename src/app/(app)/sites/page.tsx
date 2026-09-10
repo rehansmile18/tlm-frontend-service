@@ -7,6 +7,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { ArchiveAction, ResourceStatusBadge } from "@/components/resource-row-actions";
+import { BulkArchiveBar } from "@/components/bulk-archive-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ export default function SitesPage() {
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState<string[]>([]);
 
   const params: SiteListParams = { page, pageSize: PAGE_SIZE };
   const query = useQuery({
@@ -108,6 +110,7 @@ export default function SitesPage() {
                   <TableHead>{t("sites.name")}</TableHead>
                   <TableHead>{t("sites.timezone")}</TableHead>
                   <TableHead>{t("common.createdAt")}</TableHead>
+                  <TableHead className="w-px" />
                   <TableHead>{t("common.status")}</TableHead>
                   <TableHead className="w-px" />
                 </TableRow>
@@ -119,6 +122,19 @@ export default function SitesPage() {
                     <TableCell className="text-muted-foreground">{site.name}</TableCell>
                     <TableCell className="text-muted-foreground">{site.timezone}</TableCell>
                     <TableCell className="text-muted-foreground">{formatDate(site.createdAt)}</TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        aria-label={t("common.selectRow", { name: `${site.siteId} · ${site.name}` })}
+                        className="size-4 rounded border-input accent-primary"
+                        checked={selected.includes(site._id)}
+                        onChange={() =>
+                          setSelected((prev) =>
+                            prev.includes(site._id) ? prev.filter((s) => s !== site._id) : [...prev, site._id]
+                          )
+                        }
+                      />
+                    </TableCell>
                     <TableCell>
                       <ResourceStatusBadge status={site.status} />
                     </TableCell>
@@ -152,6 +168,16 @@ export default function SitesPage() {
           </div>
         </div>
       ) : null}
+      <BulkArchiveBar
+        targets={selected
+          .map((id) => filteredItems.find((s) => s._id === id))
+          .filter((r) => r !== undefined)
+          .map((s) => ({ id: s._id, name: `${s.siteId} · ${s.name}` }))}
+        onArchive={(id) => sitesApi.archive(id)}
+        invalidateKeys={["sites"]}
+        onClear={() => setSelected([])}
+      />
+
     </>
   );
 }

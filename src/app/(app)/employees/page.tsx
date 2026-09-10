@@ -7,6 +7,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { ArchiveAction, ResourceStatusBadge } from "@/components/resource-row-actions";
+import { BulkArchiveBar } from "@/components/bulk-archive-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ export default function EmployeesPage() {
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState<string[]>([]);
 
   const params: EmployeeListParams = { page, pageSize: PAGE_SIZE };
   const query = useQuery({
@@ -117,6 +119,7 @@ export default function EmployeesPage() {
                   <TableHead>{t("employees.employeeId")}</TableHead>
                   <TableHead>{t("employees.employeeGroup")}</TableHead>
                   <TableHead>{t("employees.timezone")}</TableHead>
+                  <TableHead className="w-px" />
                   <TableHead>{t("common.status")}</TableHead>
                   <TableHead>{t("common.createdAt")}</TableHead>
                   <TableHead className="w-px" />
@@ -134,6 +137,19 @@ export default function EmployeesPage() {
                       {employee.employeeGroupId ? (groupNameById.get(employee.employeeGroupId) ?? "—") : "—"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{employee.timezone}</TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        aria-label={t("common.selectRow", { name: employee.employeeId })}
+                        className="size-4 rounded border-input accent-primary"
+                        checked={selected.includes(employee._id)}
+                        onChange={() =>
+                          setSelected((prev) =>
+                            prev.includes(employee._id) ? prev.filter((s) => s !== employee._id) : [...prev, employee._id]
+                          )
+                        }
+                      />
+                    </TableCell>
                     <TableCell>
                       <ResourceStatusBadge status={employee.status} />
                     </TableCell>
@@ -168,6 +184,16 @@ export default function EmployeesPage() {
           </div>
         </div>
       ) : null}
+      <BulkArchiveBar
+        targets={selected
+          .map((id) => filteredItems.find((e) => e._id === id))
+          .filter((r) => r !== undefined)
+          .map((e) => ({ id: e._id, name: e.employeeId }))}
+        onArchive={(id) => employeesApi.archive(id)}
+        invalidateKeys={["employees"]}
+        onClear={() => setSelected([])}
+      />
+
     </>
   );
 }
