@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/page-header";
 import { ErrorState } from "@/components/data-state";
 import { useEditableClientId } from "@/components/client-picker-field";
 import { SetupFindings, SetupStepCard, type StepState } from "@/components/setup/setup-step-card";
+import { SetupInventory, type InventoryRow } from "@/components/setup/setup-inventory";
 import { StepOrganization } from "@/components/setup/step-organization";
 import { StepPayCycle } from "@/components/setup/step-pay-cycle";
 import { StepSites } from "@/components/setup/step-sites";
@@ -16,7 +17,17 @@ import { StepEmployees } from "@/components/setup/step-employees";
 import { StepRules } from "@/components/setup/step-rules";
 import { StepReview } from "@/components/setup/step-review";
 import { useMyClient } from "@/lib/hooks";
-import { assignmentsApi, ruleGroupsApi, setupApi, type ReadinessStatus, type ReadinessStep } from "@/lib/resources";
+import {
+  assignmentsApi,
+  employeesApi,
+  payPeriodConfigsApi,
+  ruleGroupsApi,
+  setupApi,
+  sitesApi,
+  tasksApi,
+  type ReadinessStatus,
+  type ReadinessStep,
+} from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { useTranslation } from "@/lib/i18n/i18n";
 
@@ -61,6 +72,29 @@ export default function SetupPage() {
     enabled: Boolean(clientId),
   });
 
+  // Read here as well as inside the steps: React Query dedupes by key, so the inventory costs
+  // nothing extra and is guaranteed to show the same numbers a step shows when opened.
+  const sitesQuery = useQuery({
+    queryKey: queryKeys.sites({ clientId }),
+    queryFn: () => sitesApi.list({ clientId, pageSize: 50 }),
+    enabled: Boolean(clientId),
+  });
+  const configsQuery = useQuery({
+    queryKey: queryKeys.payPeriodConfigs({ clientId }),
+    queryFn: () => payPeriodConfigsApi.list({ clientId, pageSize: 50 }),
+    enabled: Boolean(clientId),
+  });
+  const employeesQuery = useQuery({
+    queryKey: queryKeys.employees({ clientId, pageSize: 20 }),
+    queryFn: () => employeesApi.list({ clientId, pageSize: 20 }),
+    enabled: Boolean(clientId),
+  });
+  const tasksQuery = useQuery({
+    queryKey: queryKeys.tasks({ clientId }),
+    queryFn: () => tasksApi.list({ clientId, pageSize: 50 }),
+    enabled: Boolean(clientId),
+  });
+
   const client = clientQuery.data?.client ?? null;
   const report = readinessQuery.data;
   const activeGroups = (ruleGroupsQuery.data?.items ?? []).filter((g) => g.status === "active");
@@ -69,6 +103,57 @@ export default function SetupPage() {
   const rulesReady = activeGroups.length > 0 && assignments.length > 0;
 
   const stepByKey = (key: string) => report?.steps.find((s) => s.key === key);
+
+  const inventory: InventoryRow[] = [
+    {
+      label: t("setup.sites.title"),
+      count: sitesQuery.data?.total ?? 0,
+      examples: (sitesQuery.data?.items ?? []).map((r) => r.siteId),
+      href: "/sites",
+      required: true,
+    },
+    {
+      label: t("setup.inventory.payCycles"),
+      count: configsQuery.data?.total ?? 0,
+      examples: (configsQuery.data?.items ?? []).map((r) => r.name),
+      href: "/pay-period-configs",
+      required: true,
+    },
+    {
+      label: t("setup.employees.title"),
+      count: employeesQuery.data?.total ?? 0,
+      examples: (employeesQuery.data?.items ?? []).map((r) => r.employeeId),
+      href: "/employees",
+      required: true,
+    },
+    {
+      label: t("setup.inventory.tasks"),
+      count: tasksQuery.data?.total ?? 0,
+      examples: (tasksQuery.data?.items ?? []).map((r) => r.name),
+      href: "/tasks",
+    },
+    {
+      label: t("setup.inventory.ruleSets"),
+      count: activeGroups.length,
+      examples: activeGroups.map((g) => g.name),
+      required: true,
+    },
+    {
+      label: t("setup.inventory.assignments"),
+      count: assignments.length,
+      examples: assignments.map((a) => `${a.targetType}: ${a.targetIds.join(", ")}`),
+      required: true,
+    },
+  ];
+
+  const blockerCount =
+    (report?.steps ?? []).reduce((n, step) => n + step.findings.filter((f) => f.severity === "blocked").length, 0) +
+    (rulesReady ? 0 : 1);
+
+  // The steps are revealed by "New setup", EXCEPT when something is blocking: hiding unfinished
+  // work behind a button would be the one case where this restructure made things worse.
+  const [stepsOpen, setStepsOpen] = useState(false);
+  const showSteps = stepsOpen || blockerCount > 0;
 
   // Which step is expanded. Lifted out of the cards so finishing one can open the next: the flow
   // previously ended each step with the user scrolling and guessing what came after.
@@ -119,7 +204,23 @@ export default function SetupPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {report ? (
+          <SetupInventory
+            rows={inventory}
+            loading={sitesQuery.isLoading || employeesQuery.isLoading}
+            blockerCount={blockerCount}
+            stepsOpen={showSteps}
+            onNewSetup={() => {
+              setStepsOpen(true);
+              // Open the first step that still needs work, or the first one if all are clean —
+              // dumping the user into six collapsed cards again would defeat the point.
+              const firstBlocked = ["payCycles", "locations", "employees"].findIndex(
+                (k) => stepByKey(k)?.status === "blocked"
+              );
+              setOpenStep(firstBlocked >= 0 ? firstBlocked + 2 : 1);
+            }}
+          />
+
+          {report && showSteps ? (
             <Card>
               <CardContent className="flex flex-wrap items-center gap-x-8 gap-y-3 py-4">
                 <div>
@@ -139,7 +240,7 @@ export default function SetupPage() {
             </Card>
           ) : null}
 
-          {client ? (
+          {client && showSteps ? (
             <SetupStepCard
               index={1}
               title={t("setup.organization.title")}
@@ -166,6 +267,7 @@ export default function SetupPage() {
             </SetupStepCard>
           ) : null}
 
+          {showSteps ? (
           <SetupStepCard
             index={2}
             title={t("setup.payCycle.title")}
@@ -186,7 +288,9 @@ export default function SetupPage() {
             <SetupFindings findings={stepByKey("payCycles")?.findings ?? []} />
             <StepPayCycle clientId={clientId} defaultTimezone={client?.defaultTimezone ?? null} />
           </SetupStepCard>
+          ) : null}
 
+          {showSteps ? (
           <SetupStepCard
             index={3}
             title={t("setup.sites.title")}
@@ -207,7 +311,9 @@ export default function SetupPage() {
             <SetupFindings findings={stepByKey("locations")?.findings ?? []} />
             <StepSites clientId={clientId} defaultTimezone={client?.defaultTimezone ?? null} />
           </SetupStepCard>
+          ) : null}
 
+          {showSteps ? (
           <SetupStepCard
             index={4}
             title={t("setup.employees.title")}
@@ -228,7 +334,9 @@ export default function SetupPage() {
             <SetupFindings findings={stepByKey("employees")?.findings ?? []} />
             <StepEmployees clientId={clientId} defaultTimezone={client?.defaultTimezone ?? null} />
           </SetupStepCard>
+          ) : null}
 
+          {showSteps ? (
           <SetupStepCard
             index={5}
             title={t("setup.rules.title")}
@@ -253,8 +361,9 @@ export default function SetupPage() {
           >
             <StepRules clientId={clientId} />
           </SetupStepCard>
+          ) : null}
 
-          {report ? (
+          {report && showSteps ? (
             <SetupStepCard
               index={6}
               title={t("setup.review.title")}
