@@ -492,6 +492,10 @@ const en = {
     title: "Guided setup",
     description: "Configure everything payroll needs, in order, from one place. Each step tells you what is still missing.",
     progress: "Steps ready",
+    runProgress: "This setup",
+    addedInThisSetup: "{count} added in this setup",
+    useExisting: "Use what's already set up",
+    usingExisting: "Using what's already set up",
     inventory: {
       payCycles: "Pay cycles",
       tasks: "Tasks",

@@ -492,6 +492,10 @@ const es: TranslationKeys = {
     title: "Configuración guiada",
     description: "Configure todo lo que necesita la nómina, en orden, desde un solo lugar. Cada paso indica qué falta.",
     progress: "Pasos listos",
+    runProgress: "Esta configuración",
+    addedInThisSetup: "{count} añadidos en esta configuración",
+    useExisting: "Usar lo ya configurado",
+    usingExisting: "Usando lo ya configurado",
     inventory: {
       payCycles: "Ciclos de pago",
       tasks: "Tareas",

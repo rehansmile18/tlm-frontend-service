@@ -150,10 +150,42 @@ export default function SetupPage() {
     (report?.steps ?? []).reduce((n, step) => n + step.findings.filter((f) => f.severity === "blocked").length, 0) +
     (rulesReady ? 0 : 1);
 
-  // The steps are revealed by "New setup", EXCEPT when something is blocking: hiding unfinished
-  // work behind a button would be the one case where this restructure made things worse.
-  const [stepsOpen, setStepsOpen] = useState(false);
-  const showSteps = stepsOpen || blockerCount > 0;
+  const liveCounts = {
+    payCycles: configsQuery.data?.total ?? 0,
+    locations: sitesQuery.data?.total ?? 0,
+    employees: employeesQuery.data?.total ?? 0,
+    rules: activeGroups.length + assignments.length,
+  };
+  type RunKey = keyof typeof liveCounts;
+
+  /**
+   * A setup RUN, not the client's overall state.
+   *
+   * Deriving step states from readiness was wrong: a client who already has sites and employees
+   * saw every step marked done the moment they started a new setup, which is useless as a guide.
+   * A new setup is a new scenario — opening in another state, onboarding another depot — so the
+   * steps have to describe what THIS run has added.
+   *
+   * Measured by snapshotting the counts when the run starts and comparing: a step is done once
+   * its count has grown, so it needs no cooperation from the step components and cannot drift out
+   * of step with what was actually created.
+   */
+  const [run, setRun] = useState<{ baseline: Record<RunKey, number>; reused: RunKey[] } | null>(null);
+  const showSteps = run !== null || blockerCount > 0;
+
+  const addedIn = (key: RunKey) => (run ? Math.max(0, liveCounts[key] - run.baseline[key]) : 0);
+  const runState = (key: RunKey): StepState => {
+    if (!run) return stateFor(stepByKey(key === "rules" ? "employees" : key));
+    if (addedIn(key) > 0) return "done";
+    if (run.reused.includes(key)) return "done";
+    return "todo";
+  };
+  const markReused = (key: RunKey) =>
+    setRun((prev) => (prev ? { ...prev, reused: [...prev.reused, key] } : prev));
+
+  const runResolved = (["payCycles", "locations", "employees", "rules"] as RunKey[]).filter(
+    (k) => runState(k) === "done"
+  ).length;
 
   // Which step is expanded. Lifted out of the cards so finishing one can open the next: the flow
   // previously ended each step with the user scrolling and guessing what came after.
@@ -179,6 +211,45 @@ export default function SetupPage() {
       return status !== undefined && status !== "blocked";
     }).length +
     (rulesReady ? 1 : 0);
+
+
+  /**
+   * Footer actions for a step during a run.
+   *
+   * "Use what's already set up" matters because not every scenario needs new everything: a new
+   * depot in an existing state reuses the pay cycle and the rule set. Without it the only way to
+   * complete such a step would be to create a duplicate.
+   */
+  function stepFooter(key: RunKey, nextIndex: number, nextTitle: string) {
+    const added = addedIn(key);
+    return (
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <button
+          type="button"
+          onClick={() => setOpenStep(nextIndex)}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+        >
+          {t("setup.continueTo", { step: nextTitle })}
+          <ArrowRightIcon className="size-4" />
+        </button>
+        {run && added > 0 ? (
+          <span className="text-xs text-muted-foreground">{t("setup.addedInThisSetup", { count: String(added) })}</span>
+        ) : null}
+        {run && added === 0 && !run.reused.includes(key) && liveCounts[key] > 0 ? (
+          <button
+            type="button"
+            onClick={() => markReused(key)}
+            className="ms-auto text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+          >
+            {t("setup.useExisting")}
+          </button>
+        ) : null}
+        {run && run.reused.includes(key) ? (
+          <span className="ms-auto text-xs text-muted-foreground">{t("setup.usingExisting")}</span>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <>
@@ -210,13 +281,10 @@ export default function SetupPage() {
             blockerCount={blockerCount}
             stepsOpen={showSteps}
             onNewSetup={() => {
-              setStepsOpen(true);
-              // Open the first step that still needs work, or the first one if all are clean —
-              // dumping the user into six collapsed cards again would defeat the point.
-              const firstBlocked = ["payCycles", "locations", "employees"].findIndex(
-                (k) => stepByKey(k)?.status === "blocked"
-              );
-              setOpenStep(firstBlocked >= 0 ? firstBlocked + 2 : 1);
+              // Snapshot now, so every step starts from "not started" for this run regardless of
+              // what the client already has.
+              setRun({ baseline: { ...liveCounts }, reused: [] });
+              setOpenStep(2);
             }}
           />
 
@@ -224,16 +292,21 @@ export default function SetupPage() {
             <Card>
               <CardContent className="flex flex-wrap items-center gap-x-8 gap-y-3 py-4">
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("setup.progress")}</p>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    {t(run ? "setup.runProgress" : "setup.progress")}
+                  </p>
                   <p className="text-2xl font-semibold tabular-nums">
-                    {readyCount}
-                    <span className="text-base font-normal text-muted-foreground"> / {COUNTED_STEPS}</span>
+                    {run ? runResolved : readyCount}
+                    <span className="text-base font-normal text-muted-foreground">
+                      {" / "}
+                      {run ? 4 : COUNTED_STEPS}
+                    </span>
                   </p>
                 </div>
                 <div className="h-1.5 min-w-40 flex-1 overflow-hidden rounded-full bg-muted">
                   <div
                     className="h-full rounded-full bg-primary transition-[width]"
-                    style={{ width: `${(readyCount / COUNTED_STEPS) * 100}%` }}
+                    style={{ width: `${((run ? runResolved / 4 : readyCount / COUNTED_STEPS)) * 100}%` }}
                   />
                 </div>
               </CardContent>
@@ -272,18 +345,9 @@ export default function SetupPage() {
             index={2}
             title={t("setup.payCycle.title")}
             description={t("setup.payCycle.description")}
-            state={stateFor(stepByKey("payCycles"))}
-            {...stepProps(2, stateFor(stepByKey("payCycles")) === "blocked")}
-            footer={
-              <button
-                type="button"
-                onClick={() => setOpenStep(3)}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
-              >
-                {t("setup.continueTo", { step: t("setup.sites.title") })}
-                <ArrowRightIcon className="size-4" />
-              </button>
-            }
+            state={runState("payCycles")}
+            {...stepProps(2, runState("payCycles") === "todo")}
+            footer={stepFooter("payCycles", 3, t("setup.sites.title"))}
           >
             <SetupFindings findings={stepByKey("payCycles")?.findings ?? []} />
             <StepPayCycle clientId={clientId} defaultTimezone={client?.defaultTimezone ?? null} />
@@ -295,18 +359,9 @@ export default function SetupPage() {
             index={3}
             title={t("setup.sites.title")}
             description={t("setup.sites.description")}
-            state={stateFor(stepByKey("locations"))}
-            {...stepProps(3, stateFor(stepByKey("locations")) === "blocked")}
-            footer={
-              <button
-                type="button"
-                onClick={() => setOpenStep(4)}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
-              >
-                {t("setup.continueTo", { step: t("setup.employees.title") })}
-                <ArrowRightIcon className="size-4" />
-              </button>
-            }
+            state={runState("locations")}
+            {...stepProps(3, runState("locations") === "todo")}
+            footer={stepFooter("locations", 4, t("setup.employees.title"))}
           >
             <SetupFindings findings={stepByKey("locations")?.findings ?? []} />
             <StepSites clientId={clientId} defaultTimezone={client?.defaultTimezone ?? null} />
@@ -318,18 +373,9 @@ export default function SetupPage() {
             index={4}
             title={t("setup.employees.title")}
             description={t("setup.employees.description")}
-            state={stateFor(stepByKey("employees"))}
-            {...stepProps(4, stateFor(stepByKey("employees")) === "blocked")}
-            footer={
-              <button
-                type="button"
-                onClick={() => setOpenStep(5)}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
-              >
-                {t("setup.continueTo", { step: t("setup.rules.title") })}
-                <ArrowRightIcon className="size-4" />
-              </button>
-            }
+            state={runState("employees")}
+            {...stepProps(4, runState("employees") === "todo")}
+            footer={stepFooter("employees", 5, t("setup.rules.title"))}
           >
             <SetupFindings findings={stepByKey("employees")?.findings ?? []} />
             <StepEmployees clientId={clientId} defaultTimezone={client?.defaultTimezone ?? null} />
@@ -341,18 +387,9 @@ export default function SetupPage() {
             index={5}
             title={t("setup.rules.title")}
             description={t("setup.rules.description")}
-            state={rulesReady ? "done" : "blocked"}
-            {...stepProps(5, !rulesReady)}
-            footer={
-              <button
-                type="button"
-                onClick={() => setOpenStep(6)}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
-              >
-                {t("setup.continueTo", { step: t("setup.review.title") })}
-                <ArrowRightIcon className="size-4" />
-              </button>
-            }
+            state={runState("rules")}
+            {...stepProps(5, runState("rules") === "todo")}
+            footer={stepFooter("rules", 6, t("setup.review.title"))}
             summary={
               rulesReady
                 ? t("setup.rules.summary", { groups: String(activeGroups.length), assignments: String(assignments.length) })

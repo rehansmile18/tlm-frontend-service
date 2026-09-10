@@ -492,6 +492,10 @@ const ar: TranslationKeys = {
     title: "الإعداد الموجّه",
     description: "اضبط كل ما تحتاجه الرواتب، بالترتيب، من مكان واحد. كل خطوة تُخبرك بما ينقص.",
     progress: "الخطوات الجاهزة",
+    runProgress: "هذا الإعداد",
+    addedInThisSetup: "تمت إضافة {count} في هذا الإعداد",
+    useExisting: "استخدام ما تم إعداده بالفعل",
+    usingExisting: "يتم استخدام ما تم إعداده بالفعل",
     inventory: {
       payCycles: "دورات الدفع",
       tasks: "المهام",
