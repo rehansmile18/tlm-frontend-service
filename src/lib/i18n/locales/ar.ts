@@ -7,6 +7,7 @@ const ar: TranslationKeys = {
     archived: "محذوف",
   },
   common: {
+    useDetectedTimezone: "استخدام {zone} (المكتشفة)",
     deleted: "تم حذف {name}",
     dismiss: "تجاهل",
     confirmDelete: "تأكيد الحذف",
@@ -371,6 +372,9 @@ const ar: TranslationKeys = {
     couldntCorrect: "تعذر تصحيح التسجيل",
   },
   dashboard: {
+    unavailable: "غير متاح",
+    setupBlockedTitle: "الإعداد غير مكتمل",
+    setupBlockedBody: "ما زال بعض الإعداد ناقصاً، لذا لا يمكن تشغيل الرواتب بعد. افتح الإعداد الموجّه لمعرفة ما تبقّى.",
     moduleName: "لوحة التحكم",
     title: "لوحة التحكم",
     welcome: "مرحبًا بعودتك",

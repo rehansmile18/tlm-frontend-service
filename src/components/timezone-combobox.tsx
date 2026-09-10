@@ -91,6 +91,27 @@ const ALSO_KNOWN_AS: Record<string, string> = {
   "Atlantic/Faeroe": "Atlantic/Faroe",
 };
 
+/**
+ * The zone this browser is actually in.
+ *
+ * Nothing in either app consulted this before, so every timezone field started empty and the user
+ * picked whichever plausible-looking option their first few keystrokes matched — which is how a
+ * client in India ended up with sites on Africa/Tripoli and a pay cycle on America/Goose_Bay.
+ * Period boundaries are computed in these zones, so a mis-picked one quietly produces wrong pay
+ * dates rather than an error.
+ *
+ * Offered as a suggestion rather than silently prefilled: this is the browser's zone, which is a
+ * good guess for the person configuring the system and not necessarily right for the site or
+ * employee being configured.
+ */
+function detectBrowserTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
+  } catch {
+    return "";
+  }
+}
+
 function nameWordMatches(name: string, q: string): boolean {
   return name.split(/[\s/]+/).some((word) => word.startsWith(q) || (word.length >= 4 && q.startsWith(word)));
 }
@@ -145,6 +166,11 @@ export function TimezoneCombobox({
 }) {
   const { t } = useTranslation();
 
+  // Read once per mount rather than per render: it cannot change while the page is open, and
+  // useState's lazy initializer keeps it off the server-render path where Intl would resolve to
+  // the server's zone instead of the viewer's.
+  const [detected] = useState(detectBrowserTimezone);
+
   // Preserves whatever value a record already has (e.g. a legacy alias like "US/Eastern" that
   // Intl.supportedValuesOf omits but the runtime still resolves fine) so opening an existing
   // record's edit form never silently blanks out an already-valid, just-uncommon zone.
@@ -187,6 +213,16 @@ export function TimezoneCombobox({
           <ChevronDownIcon className="size-4" />
         </Combobox.Icon>
       </div>
+
+      {!value && detected && !disabled ? (
+        <button
+          type="button"
+          onClick={() => onValueChange(detected)}
+          className="mt-1 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+        >
+          {t("common.useDetectedTimezone", { zone: detected })}
+        </button>
+      ) : null}
 
       <Combobox.Portal>
         <Combobox.Positioner sideOffset={4} className="isolate z-50 outline-none">

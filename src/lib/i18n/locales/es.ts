@@ -7,6 +7,7 @@ const es: TranslationKeys = {
     archived: "Eliminado",
   },
   common: {
+    useDetectedTimezone: "Usar {zone} (detectada)",
     deleted: "{name} eliminado",
     dismiss: "Descartar",
     confirmDelete: "Confirmar eliminación",
@@ -371,6 +372,9 @@ const es: TranslationKeys = {
     couldntCorrect: "No se pudo corregir la marcación",
   },
   dashboard: {
+    unavailable: "No disponible",
+    setupBlockedTitle: "La configuración no está terminada",
+    setupBlockedBody: "Falta configuración, así que la nómina aún no puede ejecutarse. Abra la configuración guiada para ver qué queda.",
     moduleName: "Panel",
     title: "Panel",
     welcome: "Bienvenido de nuevo",

@@ -7,6 +7,7 @@ const en = {
     archived: "Deleted",
   },
   common: {
+    useDetectedTimezone: "Use {zone} (detected)",
     deleted: "Deleted {name}",
     dismiss: "Dismiss",
     confirmDelete: "Confirm delete",
@@ -371,6 +372,9 @@ const en = {
     couldntCorrect: "Couldn't correct punch",
   },
   dashboard: {
+    unavailable: "Unavailable",
+    setupBlockedTitle: "Setup isn't finished",
+    setupBlockedBody: "Some configuration is still missing, so payroll can't run yet. Open guided setup to see what's left.",
     moduleName: "Dashboard",
     title: "Dashboard",
     welcome: "Welcome back",

@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { endOfDay, startOfDay } from "date-fns";
 import {
   ArrowRightIcon,
+  CircleAlertIcon,
   CalendarIcon,
   ClockIcon,
   MapPinIcon,
@@ -15,7 +16,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { employeesApi, punchesApi, schedulesApi, sitesApi, timesheetsApi } from "@/lib/resources";
+import { employeesApi, punchesApi, schedulesApi, setupApi, sitesApi, timesheetsApi } from "@/lib/resources";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission, useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/i18n";
@@ -27,7 +28,21 @@ import { useTranslation } from "@/lib/i18n/i18n";
 // paging through every record just to count a subset.
 const COUNT_CAP = 200;
 
-function StatTile({ label, value, loading, icon }: { label: string; value: number | undefined; loading: boolean; icon: ReactNode }) {
+function StatTile({
+  label,
+  value,
+  loading,
+  failed,
+  icon,
+}: {
+  label: string;
+  value: number | undefined;
+  loading: boolean;
+  /** Distinguished from a zero: a failed tile must not read as "none". */
+  failed?: boolean;
+  icon: ReactNode;
+}) {
+  const { t } = useTranslation();
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between gap-2 space-y-0 pb-2">
@@ -37,6 +52,10 @@ function StatTile({ label, value, loading, icon }: { label: string; value: numbe
       <CardContent>
         {loading ? (
           <Skeleton className="h-8 w-14" />
+        ) : failed ? (
+          // Previously this rendered a bare em dash, identical to "nothing to show" — so a
+          // timesheet service that was down looked exactly like a client with no timesheets.
+          <span className="text-sm text-muted-foreground">{t("dashboard.unavailable")}</span>
         ) : (
           <span className="text-3xl font-semibold tabular-nums">{value ?? "—"}</span>
         )}
@@ -78,6 +97,16 @@ export default function DashboardPage() {
   // the "Employees" tile at no extra cost, while the fetched items are scanned client-side for
   // status === "active" to approximate "Active employees" — the employees list endpoint has no
   // status filter to request an exact server-side count from instead.
+  // A brand-new client landing here saw empty tiles with nothing explaining why or where to go.
+  // Only asked for when the caller can actually act on it.
+  const canReadSetup = hasPermission(user, "setup:read");
+  const readinessQuery = useQuery({
+    queryKey: queryKeys.setupReadiness(user?.clientId ?? ""),
+    queryFn: () => setupApi.readiness(user?.clientId ?? undefined),
+    enabled: canReadSetup && Boolean(user?.clientId),
+  });
+  const setupBlocked = readinessQuery.data?.status === "blocked";
+
   const employeesQuery = useQuery({
     queryKey: queryKeys.employees({ pageSize: COUNT_CAP }),
     queryFn: () => employeesApi.list({ pageSize: COUNT_CAP }),
@@ -125,6 +154,20 @@ export default function DashboardPage() {
 
   return (
     <>
+      {setupBlocked ? (
+        <Link
+          href="/setup"
+          className="flex items-start gap-3 rounded-lg border border-destructive/40 bg-destructive/5 p-4 transition-colors hover:bg-destructive/10"
+        >
+          <CircleAlertIcon className="mt-0.5 size-5 shrink-0 text-destructive" />
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold">{t("dashboard.setupBlockedTitle")}</span>
+            <span className="mt-0.5 block text-sm text-muted-foreground">{t("dashboard.setupBlockedBody")}</span>
+          </span>
+          <ArrowRightIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+        </Link>
+      ) : null}
+
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight text-balance">
           {t("dashboard.welcome")}
@@ -139,6 +182,7 @@ export default function DashboardPage() {
             label={t("dashboard.employees")}
             value={employeesQuery.data?.total}
             loading={employeesQuery.isLoading}
+            failed={employeesQuery.isError}
             icon={<UsersIcon className="size-4" />}
           />
         ) : null}
@@ -147,6 +191,7 @@ export default function DashboardPage() {
             label={t("dashboard.activeEmployees")}
             value={activeEmployeeCount}
             loading={employeesQuery.isLoading}
+            failed={employeesQuery.isError}
             icon={<UserCheckIcon className="size-4" />}
           />
         ) : null}
@@ -155,6 +200,7 @@ export default function DashboardPage() {
             label={t("dashboard.sites")}
             value={sitesQuery.data?.total}
             loading={sitesQuery.isLoading}
+            failed={sitesQuery.isError}
             icon={<MapPinIcon className="size-4" />}
           />
         ) : null}
@@ -163,6 +209,7 @@ export default function DashboardPage() {
             label={t("dashboard.todaysShifts")}
             value={todaysShiftsQuery.data?.total}
             loading={todaysShiftsQuery.isLoading}
+            failed={todaysShiftsQuery.isError}
             icon={<CalendarIcon className="size-4" />}
           />
         ) : null}
@@ -171,6 +218,7 @@ export default function DashboardPage() {
             label={t("dashboard.openPunches")}
             value={openPunchCount}
             loading={punchesQuery.isLoading}
+            failed={punchesQuery.isError}
             icon={<ClockIcon className="size-4" />}
           />
         ) : null}
@@ -179,6 +227,7 @@ export default function DashboardPage() {
             label={t("dashboard.pendingTimesheets")}
             value={pendingTimesheetsQuery.data?.total}
             loading={pendingTimesheetsQuery.isLoading}
+            failed={pendingTimesheetsQuery.isError}
             icon={<ReceiptTextIcon className="size-4" />}
           />
         ) : null}
